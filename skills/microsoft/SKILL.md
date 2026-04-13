@@ -18,9 +18,10 @@ The script reads credentials from `~/.openclaw/workspace/.credentials/ms-graph.j
 **When credentials are missing**, do NOT ask the user to edit files manually. Instead:
 
 1. Read `references/config.md` for the full step-by-step guide
-2. Walk the user through the setup in chat, one step at a time
-3. Collect `client_id`, `client_secret`, `refresh_token` from the user in chat
-4. Write the credentials file automatically:
+2. Walk the user through the setup in chat, one step at a time — **do not skip any step**
+3. After each step, wait for the user to complete it before proceeding
+4. Collect `client_id`, `client_secret`, `refresh_token` from the user in chat
+5. Write the credentials file automatically:
 
 ```bash
 mkdir -p ~/.openclaw/workspace/.credentials
@@ -34,13 +35,7 @@ cat > ~/.openclaw/workspace/.credentials/ms-graph.json << 'EOF'
 EOF
 ```
 
-5. Verify by running `ms_graph.py calendar list`
-
-**Do not** instruct the user to manually create or edit the credentials file.
-
-### Step 2: Set timezone
-
-After credentials are configured, ask the user for their timezone. Default: `Asia/Dubai`.
+6. **Immediately after** credentials are saved, ask the user for their timezone. Default: `Asia/Dubai`. Write the config file:
 
 ```bash
 cat > ~/.openclaw/workspace/.credentials/ms-graph-config.json << 'EOF'
@@ -49,6 +44,11 @@ cat > ~/.openclaw/workspace/.credentials/ms-graph-config.json << 'EOF'
 }
 EOF
 ```
+
+7. Verify by running `ms_graph.py check-cred` and `ms_graph.py calendar list`
+
+**Do not** instruct the user to manually create or edit the credentials file.
+**Do not** skip the timezone step — it is required for correct calendar event times.
 
 ### Update / Delete credentials
 

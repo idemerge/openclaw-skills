@@ -568,7 +568,7 @@ def cmd_mail_send(args):
         msg["ccRecipients"] = [{"emailAddress": {"address": addr.strip()}} for addr in args.cc.split(",") if addr.strip()]
     if args.bcc:
         msg["bccRecipients"] = [{"emailAddress": {"address": addr.strip()}} for addr in args.bcc.split(",") if addr.strip()]
-    api_request("POST", "/messages/send", msg)
+    api_request("POST", "/sendMail", {"message": msg})
     print(f"[OK] Email sent to: {args.to}")
 
 

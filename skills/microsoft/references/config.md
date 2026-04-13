@@ -87,9 +87,11 @@ cat > ~/.openclaw/workspace/.credentials/ms-graph.json << 'EOF'
 }
 ```
 
-### Step 6: Set Timezone
+### Step 6: Set Timezone (Required)
 
-Ask the user for their timezone. Default: `Asia/Dubai`.
+After saving credentials, **you must** ask the user for their timezone before finishing setup. This is not optional — calendar events require correct timezone.
+
+Default: `Asia/Dubai`.
 
 ```bash
 cat > ~/.openclaw/workspace/.credentials/ms-graph-config.json << 'EOF'
