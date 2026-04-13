@@ -1,6 +1,15 @@
 ---
 name: google
 description: Manage Google Calendar via Google Calendar API. Activate when the user asks to create, update, delete, or query Google events, or to share/manage calendar permissions. Also activate when the user wants to set up, update, or delete Google Calendar credentials, or change the timezone. Supports natural language quick-add, full CRUD, and calendar sharing. See references/config.md for credential management.
+homepage: https://github.com/idemerge/openclaw-skills
+metadata:
+  clawdbot:
+    emoji: "📅"
+    requires:
+      env: []
+    files:
+      - "scripts/*"
+      - "references/*"
 ---
 
 # Google Calendar Skill
@@ -231,3 +240,25 @@ python3 ~/.openclaw/skills/google/scripts/gcal.py show-config
 ## Configuration
 
 See `references/config.md`.
+
+---
+
+## External Endpoints
+
+| Endpoint | Method | Data Sent | Purpose |
+|----------|--------|-----------|---------|
+| `https://oauth2.googleapis.com/token` | POST | client_id, client_secret, refresh_token, grant_type | Obtain/refresh OAuth access token |
+| `https://www.googleapis.com/calendar/v3/...` | GET/POST/PATCH/DELETE | access_token, event details | Calendar CRUD and sharing |
+| `https://accounts.google.com/o/oauth2/auth` | GET (browser) | client_id, scope, redirect_uri | User authorization (one-time setup) |
+
+## Security & Privacy
+
+- **Credentials** (client_id, client_secret, refresh_token) are stored locally in `~/.openclaw/workspace/.credentials/google.json` with restricted permissions (0600). Never sent anywhere except Google's OAuth token endpoint.
+- **Access token** is cached in the same credentials file and auto-refreshed. Not logged or transmitted outside Google API calls.
+- **Calendar data** (events, attendees, locations) is sent to/from Google Calendar API only. No third-party services are involved.
+- **No telemetry** — the script does not phone home or report usage.
+- **No hardcoded secrets** — all credentials are read from the local config file at runtime.
+
+## Trust Statement
+
+By using this skill, your Google Calendar data is exchanged with Google's APIs using your own OAuth credentials. Only install this skill if you trust Google's API services. Credential values never leave your machine except to authenticate with Google directly.

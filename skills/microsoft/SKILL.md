@@ -1,6 +1,15 @@
 ---
 name: microsoft
 description: Manage Microsoft 365 via Microsoft Graph API. Activate when the user asks about Outlook calendar events, Teams meetings, OneDrive files, or Outlook email. Also activate when the user wants to create a Teams meeting or schedule something on Teams calendar. Also activate when the user wants to set up, update, or delete Microsoft Graph credentials, or change the timezone. Supports calendar CRUD + sharing with Teams online meetings, OneDrive file operations, and Outlook mail. See references/config.md for credential management.
+homepage: https://github.com/idemerge/openclaw-skills
+metadata:
+  clawdbot:
+    emoji: "🟦"
+    requires:
+      env: []
+    files:
+      - "scripts/*"
+      - "references/*"
 ---
 
 # Microsoft 365 Skill
@@ -228,3 +237,25 @@ python3 ~/.openclaw/skills/microsoft/scripts/ms_graph.py show-config
 ## Configuration
 
 See `references/config.md`.
+
+---
+
+## External Endpoints
+
+| Endpoint | Method | Data Sent | Purpose |
+|----------|--------|-----------|---------|
+| `https://login.microsoftonline.com/consumers/oauth2/v2.0/token` | POST | client_id, client_secret, refresh_token, grant_type, scope | Obtain/refresh OAuth access token |
+| `https://graph.microsoft.com/v1.0/me/...` | GET/POST/PATCH/DELETE | access_token, event/mail/file data | Calendar, OneDrive, Mail operations |
+| `https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize` | GET (browser) | client_id, scope, redirect_uri | User authorization (one-time setup) |
+
+## Security & Privacy
+
+- **Credentials** (client_id, client_secret, refresh_token) are stored locally in `~/.openclaw/workspace/.credentials/ms-graph.json`. Never sent anywhere except Microsoft's OAuth token endpoint.
+- **Access token** is cached in `~/.ms-graph-token` with restricted permissions (0600) and auto-refreshed. Not logged or transmitted outside Microsoft Graph API calls.
+- **Calendar, mail, and file data** is sent to/from Microsoft Graph API only. No third-party services are involved.
+- **No telemetry** — the script does not phone home or report usage.
+- **No hardcoded secrets** — all credentials are read from the local config file at runtime.
+
+## Trust Statement
+
+By using this skill, your Microsoft 365 data (calendar, email, files) is exchanged with Microsoft Graph API using your own OAuth credentials. Only install this skill if you trust Microsoft's cloud services. Credential values never leave your machine except to authenticate with Microsoft directly.
