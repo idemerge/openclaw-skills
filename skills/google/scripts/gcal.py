@@ -14,8 +14,8 @@ Usage:
   gcal.py check-cred                         # check credential status
   gcal.py show-config                        # show current timezone config
 
-Credentials: ~/.openclaw/workspace/.credentials/google-calendar.json
-Config:      ~/.openclaw/workspace/.credentials/google-calendar-config.json
+Credentials: ~/.openclaw/workspace/.credentials/google.json
+Config:      ~/.openclaw/workspace/.credentials/google-config.json
 """
 
 import sys
@@ -38,7 +38,7 @@ try:
     from google.auth.transport.requests import Request
     from googleapiclient.discovery import build
 except ImportError as e:
-    VENV = Path.home() / ".openclaw/skills/google-calendar/.venv"
+    VENV = Path.home() / ".openclaw/skills/google/.venv"
     print(f"[ERROR] Missing dependency: {e}")
     if not VENV.exists():
         print(f"Run the following to set up the virtual environment:\n"
@@ -48,8 +48,8 @@ except ImportError as e:
         print(f"Run: {VENV}/bin/pip install google-api-python-client google-auth-oauthlib python-dateutil")
     sys.exit(1)
 
-CREDENTIALS_FILE = Path.home() / ".openclaw/workspace/.credentials/google-calendar.json"
-CONFIG_FILE = Path.home() / ".openclaw/workspace/.credentials/google-calendar-config.json"
+CREDENTIALS_FILE = Path.home() / ".openclaw/workspace/.credentials/google.json"
+CONFIG_FILE = Path.home() / ".openclaw/workspace/.credentials/google-config.json"
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 

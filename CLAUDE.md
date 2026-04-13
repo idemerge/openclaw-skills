@@ -48,7 +48,7 @@ Skills that require external API credentials should:
 ## Timezone Pattern
 
 Skills that deal with dates/times should:
-1. Read timezone from a config file (e.g. `google-calendar-config.json`), not hardcode it
+1. Read timezone from a config file (e.g. `google-config.json`), not hardcode it
 2. During initial setup, ask the user for their timezone — provide a default (e.g. `Asia/Dubai`)
 3. Provide a `show-config` script command to display current timezone
 4. Support changing timezone without re-entering credentials

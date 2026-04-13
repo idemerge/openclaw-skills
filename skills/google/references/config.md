@@ -8,10 +8,10 @@ The skill needs three credential values and one timezone setting:
 
 | Value | What it is | File |
 |-------|------------|------|
-| `client_id` | OAuth 2.0 Client ID from Google Cloud Console | `google-calendar.json` |
-| `client_secret` | OAuth 2.0 Client Secret from Google Cloud Console | `google-calendar.json` |
-| `refresh_token` | Long-lived token obtained via OAuth Playground | `google-calendar.json` |
-| `timezone` | IANA timezone name (default: `Asia/Dubai`) | `google-calendar-config.json` |
+| `client_id` | OAuth 2.0 Client ID from Google Cloud Console | `google.json` |
+| `client_secret` | OAuth 2.0 Client Secret from Google Cloud Console | `google.json` |
+| `refresh_token` | Long-lived token obtained via OAuth Playground | `google.json` |
+| `timezone` | IANA timezone name (default: `Asia/Dubai`) | `google-config.json` |
 
 Both files are stored in `~/.openclaw/workspace/.credentials/`.
 
@@ -68,7 +68,7 @@ Once the user provides all three values in chat, write the credentials file:
 
 ```bash
 mkdir -p ~/.openclaw/workspace/.credentials
-cat > ~/.openclaw/workspace/.credentials/google-calendar.json << 'EOF'
+cat > ~/.openclaw/workspace/.credentials/google.json << 'EOF'
 {
   "client_id": "<client_id>",
   "client_secret": "<client_secret>",
@@ -81,7 +81,7 @@ EOF
 Then verify:
 
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py list today
+python3 ~/.openclaw/skills/google/scripts/gcal.py list today
 ```
 
 ### Step 6: Set Timezone
@@ -92,7 +92,7 @@ Write the config file:
 
 ```bash
 mkdir -p ~/.openclaw/workspace/.credentials
-cat > ~/.openclaw/workspace/.credentials/google-calendar-config.json << 'EOF'
+cat > ~/.openclaw/workspace/.credentials/google-config.json << 'EOF'
 {
   "timezone": "<timezone>"
 }
@@ -117,21 +117,21 @@ Full list: [IANA Time Zone Database](https://en.wikipedia.org/wiki/List_of_tz_da
 Verify:
 
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py show-config
+python3 ~/.openclaw/skills/google/scripts/gcal.py show-config
 ```
 
 ## Update Credentials
 
 When the user wants to switch to a different Google account or an existing refresh_token has expired:
 
-1. Check current status: `python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py check-cred`
+1. Check current status: `python3 ~/.openclaw/skills/google/scripts/gcal.py check-cred`
 2. Ask the user which fields to update:
    - **Switch account**: need new `client_id`, `client_secret`, `refresh_token` (all three)
    - **Token expired**: only need a new `refresh_token`
 3. If only updating `refresh_token`, follow Step 4 above (OAuth Playground) to get a new one
 4. If switching accounts, follow Steps 1-4 above from the beginning
 5. Write the updated credentials file (same command as Step 5 above)
-6. Verify: `python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py check-cred`
+6. Verify: `python3 ~/.openclaw/skills/google/scripts/gcal.py check-cred`
 
 ## Delete Credentials
 
@@ -141,10 +141,10 @@ When the user wants to revoke Google Calendar access:
 2. Delete the credentials file:
 
 ```bash
-rm ~/.openclaw/workspace/.credentials/google-calendar.json
+rm ~/.openclaw/workspace/.credentials/google.json
 ```
 
-3. Verify: `python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py check-cred`
+3. Verify: `python3 ~/.openclaw/skills/google/scripts/gcal.py check-cred`
    Should show `[MISSING] Credentials file not found`
 4. Optionally, also revoke access in [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → OAuth 2.0 Client IDs → delete the client, or in [Google Account Permissions](https://myaccount.google.com/permissions) → remove the app
 

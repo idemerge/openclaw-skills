@@ -1,5 +1,5 @@
 ---
-name: google-calendar
+name: google
 description: Manage Google Calendar via Google Calendar API. Activate when the user asks to create, update, delete, or query Google events, or to share/manage calendar permissions. Also activate when the user wants to set up, update, or delete Google Calendar credentials, or change the timezone. Supports natural language quick-add, full CRUD, and calendar sharing. See references/config.md for credential management.
 ---
 
@@ -16,13 +16,13 @@ The script requires a Python virtual environment, Google OAuth credentials, and 
 When the skill is first used and the venv is missing, the script will print setup commands. Execute them:
 
 ```bash
-python3 -m venv ~/.openclaw/skills/google-calendar/.venv
-~/.openclaw/skills/google-calendar/.venv/bin/pip install google-api-python-client google-auth-oauthlib python-dateutil
+python3 -m venv ~/.openclaw/skills/google/.venv
+~/.openclaw/skills/google/.venv/bin/pip install google-api-python-client google-auth-oauthlib python-dateutil
 ```
 
 ### Step 2: Configure Google OAuth credentials
 
-The script reads credentials from `~/.openclaw/workspace/.credentials/google-calendar.json`.
+The script reads credentials from `~/.openclaw/workspace/.credentials/google.json`.
 
 **When credentials are missing**, do NOT ask the user to edit files manually. Instead:
 
@@ -33,7 +33,7 @@ The script reads credentials from `~/.openclaw/workspace/.credentials/google-cal
 
 ```bash
 mkdir -p ~/.openclaw/workspace/.credentials
-cat > ~/.openclaw/workspace/.credentials/google-calendar.json << 'EOF'
+cat > ~/.openclaw/workspace/.credentials/google.json << 'EOF'
 {
   "client_id": "<client_id>",
   "client_secret": "<client_secret>",
@@ -53,7 +53,7 @@ After credentials are configured, ask the user for their timezone. If not specif
 
 ```bash
 mkdir -p ~/.openclaw/workspace/.credentials
-cat > ~/.openclaw/workspace/.credentials/google-calendar-config.json << 'EOF'
+cat > ~/.openclaw/workspace/.credentials/google-config.json << 'EOF'
 {
   "timezone": "<timezone>"
 }
@@ -78,8 +78,8 @@ When the user wants to switch to a different Google account or update an expired
 When the user wants to remove Google Calendar access:
 
 ```bash
-rm ~/.openclaw/workspace/.credentials/google-calendar.json
-rm ~/.openclaw/workspace/.credentials/google-calendar-config.json
+rm ~/.openclaw/workspace/.credentials/google.json
+rm ~/.openclaw/workspace/.credentials/google-config.json
 ```
 
 Confirm removal by running `gcal.py list today` — it should report `[SETUP NEEDED]`.
@@ -87,7 +87,7 @@ Confirm removal by running `gcal.py list today` — it should report `[SETUP NEE
 ### Check credential status
 
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py check-cred
+python3 ~/.openclaw/skills/google/scripts/gcal.py check-cred
 ```
 
 Shows whether the credentials file exists and whether the current token is valid.
@@ -95,7 +95,7 @@ Shows whether the credentials file exists and whether the current token is valid
 ### Show current config
 
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py show-config
+python3 ~/.openclaw/skills/google/scripts/gcal.py show-config
 ```
 
 Shows the current timezone and config file location.
@@ -105,7 +105,7 @@ Shows the current timezone and config file location.
 Ask the user for the new timezone, then write the config file:
 
 ```bash
-cat > ~/.openclaw/workspace/.credentials/google-calendar-config.json << 'EOF'
+cat > ~/.openclaw/workspace/.credentials/google-config.json << 'EOF'
 {
   "timezone": "<new_timezone>"
 }
@@ -116,7 +116,7 @@ Verify with `gcal.py show-config`.
 
 ## Tool Script
 
-`scripts/gcal.py` — Auto-detects and uses the venv Python. Config at `~/.openclaw/workspace/.credentials/google-calendar-config.json`, credentials at `~/.openclaw/workspace/.credentials/google-calendar.json`.
+`scripts/gcal.py` — Auto-detects and uses the venv Python. Config at `~/.openclaw/workspace/.credentials/google-config.json`, credentials at `~/.openclaw/workspace/.credentials/google.json`.
 
 ---
 
@@ -124,7 +124,7 @@ Verify with `gcal.py show-config`.
 
 > **Timezone is per-user config, default `Asia/Dubai` on first setup.**
 >
-> - Read timezone from `google-calendar-config.json`. If not configured, fall back to system local timezone.
+> - Read timezone from `google-config.json`. If not configured, fall back to system local timezone.
 > - Display and discuss all times in the configured timezone.
 > - If the user mentions a different timezone for a specific event, use that timezone for that event only.
 
@@ -152,17 +152,17 @@ Verify with `gcal.py show-config`.
 
 ### List events
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py list [today|tomorrow|week|next-week|month]
+python3 ~/.openclaw/skills/google/scripts/gcal.py list [today|tomorrow|week|next-week|month]
 ```
 
 ### Get event details
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py get <event_id>
+python3 ~/.openclaw/skills/google/scripts/gcal.py get <event_id>
 ```
 
 ### Create event
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py create \
+python3 ~/.openclaw/skills/google/scripts/gcal.py create \
   "Title" "2026-03-30T14:00:00" ["2026-03-30T15:00:00"] ["Description"] \
   [--attendees a@x.com b@x.com ...]
 ```
@@ -173,33 +173,33 @@ python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py create \
 
 ### Quick add (natural language)
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py quick "Meeting tomorrow at 3pm"
+python3 ~/.openclaw/skills/google/scripts/gcal.py quick "Meeting tomorrow at 3pm"
 ```
 
 ### Update event
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py update <event_id> <field> <value>
+python3 ~/.openclaw/skills/google/scripts/gcal.py update <event_id> <field> <value>
 # field: summary | description | start | end | location
 ```
 
 ### Delete event
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py delete <event_id>
+python3 ~/.openclaw/skills/google/scripts/gcal.py delete <event_id>
 ```
 
 ### View sharing permissions
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py share-list
+python3 ~/.openclaw/skills/google/scripts/gcal.py share-list
 ```
 
 ### Share calendar with user
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py share <email> [reader|writer|owner|freeBusyReader]
+python3 ~/.openclaw/skills/google/scripts/gcal.py share <email> [reader|writer|owner|freeBusyReader]
 ```
 
 ### Show current config
 ```bash
-python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py show-config
+python3 ~/.openclaw/skills/google/scripts/gcal.py show-config
 ```
 
 ---
