@@ -24,11 +24,12 @@ python3 -m venv ~/.openclaw/skills/google-calendar/.venv
 
 The script reads credentials from `~/.openclaw/workspace/.credentials/google-calendar.json`.
 
-**When credentials are missing**, do NOT ask the user to edit files manually. Instead, collect the values in chat and write the file automatically:
+**When credentials are missing**, do NOT ask the user to edit files manually. Instead:
 
-1. Tell the user they need a Google OAuth credential. Briefly explain how to obtain one (see references/config.md).
-2. Ask the user to provide these values in chat: `client_id`, `client_secret`, `refresh_token`
-3. Once all three values are provided, write the credentials file:
+1. Read `references/config.md` for the full step-by-step guide
+2. Walk the user through the setup in chat, one step at a time — wait for the user to complete each step before proceeding
+3. Collect `client_id`, `client_secret`, `refresh_token` from the user in chat
+4. Write the credentials file automatically:
 
 ```bash
 mkdir -p ~/.openclaw/workspace/.credentials
@@ -42,7 +43,7 @@ cat > ~/.openclaw/workspace/.credentials/google-calendar.json << 'EOF'
 EOF
 ```
 
-4. Verify by running `gcal.py list today`.
+5. Verify by running `gcal.py list today`
 
 **Do not** instruct the user to manually create or edit the credentials file. Collect the values in chat and write the file for them.
 
