@@ -11,6 +11,7 @@ Usage:
   gcal.py quick <natural language text>
   gcal.py share <email> [reader|writer|owner|freeBusyReader]
   gcal.py share-list
+  gcal.py check-cred                         # check credential status
 
 Credentials file: ~/.openclaw/workspace/.credentials/google-calendar.json
 """
@@ -293,6 +294,47 @@ def cmd_share(service, email: str, role: str = "reader"):
     print(f"[OK] Calendar shared with {email} (permission: {role_label.get(role, role)})")
 
 
+def cmd_check_cred():
+    if not CREDENTIALS_FILE.exists():
+        print("[MISSING] Credentials file not found")
+        print(f"  Location: {CREDENTIALS_FILE}")
+        print("  Provide client_id, client_secret, refresh_token in chat to set up")
+        return
+
+    with open(CREDENTIALS_FILE) as f:
+        cred_data = json.load(f)
+
+    missing = [k for k in ("client_id", "client_secret", "refresh_token") if not cred_data.get(k)]
+    if missing:
+        print(f"[INVALID] Missing required fields: {', '.join(missing)}")
+        print(f"  Location: {CREDENTIALS_FILE}")
+        return
+
+    # Try to refresh the token to verify validity
+    try:
+        creds = Credentials(
+            token=cred_data.get("token"),
+            refresh_token=cred_data["refresh_token"],
+            token_uri=cred_data.get("token_uri", "https://oauth2.googleapis.com/token"),
+            client_id=cred_data["client_id"],
+            client_secret=cred_data["client_secret"],
+            scopes=SCOPES,
+        )
+        creds.refresh(Request())
+        # Write back refreshed token
+        cred_data["token"] = creds.token
+        with open(CREDENTIALS_FILE, "w") as f:
+            json.dump(cred_data, f, indent=2)
+        print("[OK] Credentials are valid")
+        print(f"  Location: {CREDENTIALS_FILE}")
+        print(f"  client_id: {cred_data['client_id'][:20]}...")
+        print(f"  refresh_token: {cred_data['refresh_token'][:10]}...")
+    except Exception as e:
+        print(f"[ERROR] Credential verification failed: {e}")
+        print(f"  Location: {CREDENTIALS_FILE}")
+        print("  The refresh_token may have expired. Please provide a new one in chat.")
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
@@ -301,6 +343,12 @@ def main():
         sys.exit(1)
 
     cmd = sys.argv[1]
+
+    # check-cred does not require a service (works without valid credentials)
+    if cmd == "check-cred":
+        cmd_check_cred()
+        return
+
     service = get_service()
 
     if cmd == "list":

@@ -1,6 +1,6 @@
 ---
 name: google-calendar
-description: Manage Google Calendar via Google Calendar API. Activate when the user asks to create, update, delete, or query Google events, or to share/manage calendar permissions. Supports natural language quick-add, full CRUD, and calendar sharing. See references/config.md for configuration.
+description: Manage Google Calendar via Google Calendar API. Activate when the user asks to create, update, delete, or query Google events, or to share/manage calendar permissions. Also activate when the user wants to set up, update, or delete Google Calendar credentials. Supports natural language quick-add, full CRUD, and calendar sharing. See references/config.md for credential management.
 ---
 
 # Google Calendar Skill
@@ -46,6 +46,33 @@ EOF
 5. Verify by running `gcal.py list today`
 
 **Do not** instruct the user to manually create or edit the credentials file. Collect the values in chat and write the file for them.
+
+### Update credentials
+
+When the user wants to switch to a different Google account or update an expired refresh_token:
+
+1. Ask which fields to update: `client_id`, `client_secret`, `refresh_token`, or all three
+2. Collect the new values in chat
+3. Overwrite the credentials file (same command as Step 2 above)
+4. Verify with `gcal.py list today`
+
+### Delete credentials
+
+When the user wants to remove Google Calendar access:
+
+```bash
+rm ~/.openclaw/workspace/.credentials/google-calendar.json
+```
+
+Confirm removal by running `gcal.py list today` — it should report `[SETUP NEEDED]`.
+
+### Check credential status
+
+```bash
+python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py check-cred
+```
+
+Shows whether the credentials file exists and whether the current token is valid.
 
 ## Tool Script
 

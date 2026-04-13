@@ -1,6 +1,6 @@
-# Google Calendar Credential Setup Guide
+# Google Calendar Credential Management Guide
 
-Read this file when the user needs to set up Google Calendar credentials for the first time, or when the script reports `[SETUP NEEDED]`.
+Read this file when the user needs to set up, update, or delete Google Calendar credentials, or when the script reports `[SETUP NEEDED]`.
 
 ## Overview
 
@@ -82,6 +82,34 @@ Then verify:
 ```bash
 python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py list today
 ```
+
+## Update Credentials
+
+When the user wants to switch to a different Google account or an existing refresh_token has expired:
+
+1. Check current status: `python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py check-cred`
+2. Ask the user which fields to update:
+   - **Switch account**: need new `client_id`, `client_secret`, `refresh_token` (all three)
+   - **Token expired**: only need a new `refresh_token`
+3. If only updating `refresh_token`, follow Step 4 above (OAuth Playground) to get a new one
+4. If switching accounts, follow Steps 1-4 above from the beginning
+5. Write the updated credentials file (same command as Step 5 above)
+6. Verify: `python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py check-cred`
+
+## Delete Credentials
+
+When the user wants to revoke Google Calendar access:
+
+1. Confirm with the user — this will remove all stored Google Calendar credentials
+2. Delete the credentials file:
+
+```bash
+rm ~/.openclaw/workspace/.credentials/google-calendar.json
+```
+
+3. Verify: `python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py check-cred`
+   Should show `[MISSING] Credentials file not found`
+4. Optionally, also revoke access in [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → OAuth 2.0 Client IDs → delete the client, or in [Google Account Permissions](https://myaccount.google.com/permissions) → remove the app
 
 ## Troubleshooting
 
