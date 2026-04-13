@@ -12,8 +12,10 @@ Usage:
   gcal.py share <email> [reader|writer|owner|freeBusyReader]
   gcal.py share-list
   gcal.py check-cred                         # check credential status
+  gcal.py show-config                        # show current timezone config
 
-Credentials file: ~/.openclaw/workspace/.credentials/google-calendar.json
+Credentials: ~/.openclaw/workspace/.credentials/google-calendar.json
+Config:      ~/.openclaw/workspace/.credentials/google-calendar-config.json
 """
 
 import sys
@@ -47,10 +49,29 @@ except ImportError as e:
     sys.exit(1)
 
 CREDENTIALS_FILE = Path.home() / ".openclaw/workspace/.credentials/google-calendar.json"
+CONFIG_FILE = Path.home() / ".openclaw/workspace/.credentials/google-calendar-config.json"
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
-TIMEZONE = "Asia/Dubai"  # GST UTC+4 — default timezone for all operations
-TZ_OFFSET = "+04:00"     # UTC offset string for Asia/Dubai
-GST = timezone(timedelta(hours=4))  # Asia/Dubai fixed offset for naive datetime localisation
+
+
+def load_timezone():
+    """Load timezone from config file. Falls back to system local timezone."""
+    if CONFIG_FILE.exists():
+        try:
+            with open(CONFIG_FILE) as f:
+                cfg = json.load(f)
+            tz_name = cfg.get("timezone")
+            if tz_name:
+                from zoneinfo import ZoneInfo
+                return ZoneInfo(tz_name), tz_name
+        except Exception:
+            pass
+    # Fallback: system local timezone
+    local_tz = datetime.now().astimezone().tzinfo
+    tz_name = str(local_tz)
+    return local_tz, tz_name
+
+
+LOCAL_TZ, TIMEZONE = load_timezone()
 
 
 # ── Auth ───────────────────────────────────────────────────────────────────────
@@ -96,8 +117,7 @@ def get_service():
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def get_time_range(period: str):
-    # Use current time in Asia/Dubai (GST, UTC+4) so day boundaries are correct
-    now = datetime.now(tz=GST)
+    now = datetime.now(tz=LOCAL_TZ)
     if period == "today":
         start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         end = start + timedelta(days=1) - timedelta(seconds=1)
@@ -120,13 +140,12 @@ def get_time_range(period: str):
 
 
 def fmt_dt(dt_str: str) -> str:
-    """Parse an ISO datetime string and display it in GST (Asia/Dubai, UTC+4)."""
+    """Parse an ISO datetime string and display it in the local timezone."""
     try:
         if "T" in dt_str:
             dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
-            # Convert to Asia/Dubai (UTC+4) for display
-            dt_gst = dt.astimezone(GST)
-            return dt_gst.strftime("%Y-%m-%d %H:%M GST")
+            dt_local = dt.astimezone(LOCAL_TZ)
+            return dt_local.strftime("%Y-%m-%d %H:%M %Z")
         return dt_str
     except Exception:
         return dt_str
@@ -203,16 +222,16 @@ def build_attendees(emails):
     return result
 
 
-def localize_gst(dt: datetime) -> datetime:
-    """If dt is naive (no tzinfo), attach the Asia/Dubai UTC+4 offset so isoformat() is correct."""
+def localize_tz(dt: datetime) -> datetime:
+    """If dt is naive (no tzinfo), attach the local timezone so isoformat() is correct."""
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=GST)
+        return dt.replace(tzinfo=LOCAL_TZ)
     return dt
 
 
 def cmd_create(service, summary: str, start_str: str, end_str: str = None, description: str = None, attendees: list = None):
-    start = localize_gst(date_parser.parse(start_str))
-    end   = localize_gst(date_parser.parse(end_str)) if end_str else start + timedelta(hours=1)
+    start = localize_tz(date_parser.parse(start_str))
+    end   = localize_tz(date_parser.parse(end_str)) if end_str else start + timedelta(hours=1)
 
     event = {
         "summary": summary,
@@ -237,7 +256,7 @@ def cmd_update(service, event_id: str, field: str, value: str):
     elif field == "description":
         ev["description"] = value
     elif field in ("start", "end"):
-        dt = localize_gst(date_parser.parse(value))
+        dt = localize_tz(date_parser.parse(value))
         ev[field] = {"dateTime": dt.isoformat(), "timeZone": TIMEZONE}
     elif field == "location":
         ev["location"] = value
@@ -335,6 +354,19 @@ def cmd_check_cred():
         print("  The refresh_token may have expired. Please provide a new one in chat.")
 
 
+def cmd_show_config():
+    print(f"Timezone : {TIMEZONE}")
+    print(f"Config   : {CONFIG_FILE}")
+    if CONFIG_FILE.exists():
+        with open(CONFIG_FILE) as f:
+            cfg = json.load(f)
+        print(f"  timezone: {cfg.get('timezone', '(not set)')}")
+    else:
+        print("  (config file not found — using system local timezone)")
+    now = datetime.now(tz=LOCAL_TZ)
+    print(f"Local now: {now.strftime('%Y-%m-%d %H:%M %Z')}")
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
@@ -344,9 +376,12 @@ def main():
 
     cmd = sys.argv[1]
 
-    # check-cred does not require a service (works without valid credentials)
+    # check-cred and show-config do not require a service
     if cmd == "check-cred":
         cmd_check_cred()
+        return
+    if cmd == "show-config":
+        cmd_show_config()
         return
 
     service = get_service()

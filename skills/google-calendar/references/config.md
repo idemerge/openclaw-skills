@@ -1,18 +1,19 @@
 # Google Calendar Credential Management Guide
 
-Read this file when the user needs to set up, update, or delete Google Calendar credentials, or when the script reports `[SETUP NEEDED]`.
+Read this file when the user needs to set up, update, or delete Google Calendar credentials or timezone, or when the script reports `[SETUP NEEDED]`.
 
 ## Overview
 
-The skill needs three values from the user:
+The skill needs three credential values and one timezone setting:
 
-| Value | What it is |
-|-------|------------|
-| `client_id` | OAuth 2.0 Client ID from Google Cloud Console |
-| `client_secret` | OAuth 2.0 Client Secret from Google Cloud Console |
-| `refresh_token` | Long-lived token obtained via OAuth Playground |
+| Value | What it is | File |
+|-------|------------|------|
+| `client_id` | OAuth 2.0 Client ID from Google Cloud Console | `google-calendar.json` |
+| `client_secret` | OAuth 2.0 Client Secret from Google Cloud Console | `google-calendar.json` |
+| `refresh_token` | Long-lived token obtained via OAuth Playground | `google-calendar.json` |
+| `timezone` | IANA timezone name (default: `Asia/Dubai`) | `google-calendar-config.json` |
 
-Once the user provides all three, write them to `~/.openclaw/workspace/.credentials/google-calendar.json`.
+Both files are stored in `~/.openclaw/workspace/.credentials/`.
 
 ## Step-by-Step Guide for the User
 
@@ -81,6 +82,42 @@ Then verify:
 
 ```bash
 python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py list today
+```
+
+### Step 6: Set Timezone
+
+Ask the user what timezone they want. If they don't specify, default to `Asia/Dubai`.
+
+Write the config file:
+
+```bash
+mkdir -p ~/.openclaw/workspace/.credentials
+cat > ~/.openclaw/workspace/.credentials/google-calendar-config.json << 'EOF'
+{
+  "timezone": "<timezone>"
+}
+EOF
+```
+
+Common timezone values:
+
+| City/Region | Timezone |
+|-------------|----------|
+| Dubai / UAE | `Asia/Dubai` |
+| Shanghai / Beijing | `Asia/Shanghai` |
+| Tokyo | `Asia/Tokyo` |
+| Singapore | `Asia/Singapore` |
+| London | `Europe/London` |
+| New York | `America/New_York` |
+| Los Angeles | `America/Los_Angeles` |
+| UTC | `UTC` |
+
+Full list: [IANA Time Zone Database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+
+Verify:
+
+```bash
+python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py show-config
 ```
 
 ## Update Credentials

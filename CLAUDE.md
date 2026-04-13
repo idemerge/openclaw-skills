@@ -45,10 +45,13 @@ Skills that require external API credentials should:
 4. Include setup/update/delete flows in `references/config.md`
 5. When credentials are missing, print `[SETUP NEEDED]` with a brief explanation pointing the agent to the reference doc
 
-## Git
+## Timezone Pattern
 
-- Remote uses `github-idemerge` SSH host alias from `~/.ssh/config` (key: `~/.ssh/id_ed25519_idemerge`)
-- Repo: `git@github-idemerge:idemerge/openclaw-skills.git`
+Skills that deal with dates/times should:
+1. Read timezone from a config file (e.g. `google-calendar-config.json`), not hardcode it
+2. During initial setup, ask the user for their timezone — provide a default (e.g. `Asia/Dubai`)
+3. Provide a `show-config` script command to display current timezone
+4. Support changing timezone without re-entering credentials
 
 ## Language
 

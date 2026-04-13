@@ -1,6 +1,6 @@
 ---
 name: google-calendar
-description: Manage Google Calendar via Google Calendar API. Activate when the user asks to create, update, delete, or query Google events, or to share/manage calendar permissions. Also activate when the user wants to set up, update, or delete Google Calendar credentials. Supports natural language quick-add, full CRUD, and calendar sharing. See references/config.md for credential management.
+description: Manage Google Calendar via Google Calendar API. Activate when the user asks to create, update, delete, or query Google events, or to share/manage calendar permissions. Also activate when the user wants to set up, update, or delete Google Calendar credentials, or change the timezone. Supports natural language quick-add, full CRUD, and calendar sharing. See references/config.md for credential management.
 ---
 
 # Google Calendar Skill
@@ -9,7 +9,7 @@ Manage Google Calendar via Google Calendar API v3 (CRUD + sharing).
 
 ## Setup
 
-The script requires a Python virtual environment and Google OAuth credentials. Both are configured interactively through chat.
+The script requires a Python virtual environment, Google OAuth credentials, and a timezone setting. All are configured interactively through chat.
 
 ### Step 1: Install dependencies (run once)
 
@@ -47,6 +47,23 @@ EOF
 
 **Do not** instruct the user to manually create or edit the credentials file. Collect the values in chat and write the file for them.
 
+### Step 3: Set timezone
+
+After credentials are configured, ask the user for their timezone. If not specified, default to `Asia/Dubai`.
+
+```bash
+mkdir -p ~/.openclaw/workspace/.credentials
+cat > ~/.openclaw/workspace/.credentials/google-calendar-config.json << 'EOF'
+{
+  "timezone": "<timezone>"
+}
+EOF
+```
+
+Common timezone values: `Asia/Dubai`, `Asia/Shanghai`, `America/New_York`, `Europe/London`, `UTC`. Full list: [IANA Time Zone Database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
+
+Verify with `gcal.py show-config`.
+
 ### Update credentials
 
 When the user wants to switch to a different Google account or update an expired refresh_token:
@@ -62,6 +79,7 @@ When the user wants to remove Google Calendar access:
 
 ```bash
 rm ~/.openclaw/workspace/.credentials/google-calendar.json
+rm ~/.openclaw/workspace/.credentials/google-calendar-config.json
 ```
 
 Confirm removal by running `gcal.py list today` — it should report `[SETUP NEEDED]`.
@@ -74,24 +92,46 @@ python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py check-cred
 
 Shows whether the credentials file exists and whether the current token is valid.
 
+### Show current config
+
+```bash
+python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py show-config
+```
+
+Shows the current timezone and config file location.
+
+### Change timezone
+
+Ask the user for the new timezone, then write the config file:
+
+```bash
+cat > ~/.openclaw/workspace/.credentials/google-calendar-config.json << 'EOF'
+{
+  "timezone": "<new_timezone>"
+}
+EOF
+```
+
+Verify with `gcal.py show-config`.
+
 ## Tool Script
 
-`scripts/gcal.py` — Auto-detects and uses the venv Python. Credentials at `~/.openclaw/workspace/.credentials/google-calendar.json`.
+`scripts/gcal.py` — Auto-detects and uses the venv Python. Config at `~/.openclaw/workspace/.credentials/google-calendar-config.json`, credentials at `~/.openclaw/workspace/.credentials/google-calendar.json`.
 
 ---
 
 ## 📌 Default Behavior Rules
 
-> **Default timezone: `Asia/Dubai` (GST, UTC+4) — always.**
+> **Timezone is per-user config, default `Asia/Dubai` on first setup.**
 >
-> - All event times are treated as Dubai time unless the user explicitly specifies a different timezone.
-> - The `TIMEZONE` constant in `gcal.py` is set to `"Asia/Dubai"` — do not override it unless the user asks.
-> - Display and discuss all times in GST. Never assume UTC or any other timezone.
+> - Read timezone from `google-calendar-config.json`. If not configured, fall back to system local timezone.
+> - Display and discuss all times in the configured timezone.
+> - If the user mentions a different timezone for a specific event, use that timezone for that event only.
 
 > **Always call `session_status` before computing any date or time.**
 >
 > - Never guess or assume today's date — it may be wrong.
-> - When the user says "today", "tomorrow", "next Monday", etc., **first call `session_status`** to get the current UTC time, then convert to GST (UTC+4) to determine the correct date.
+> - When the user says "today", "tomorrow", "next Monday", etc., **first call `session_status`** to get the current UTC time, then convert to the configured timezone to determine the correct date.
 > - This is mandatory for any relative date/time reference (today, tomorrow, next week, etc.).
 > - Only use absolute dates the user explicitly provides (e.g. "2026-04-10") without calling `session_status`.
 
@@ -157,13 +197,18 @@ python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py share-list
 python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py share <email> [reader|writer|owner|freeBusyReader]
 ```
 
+### Show current config
+```bash
+python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py show-config
+```
+
 ---
 
 ## Workflow
 
-1. **Determining dates**: If the request involves relative dates (today, tomorrow, next week, etc.), call `session_status` first to get the real current date in GST — never guess.
+1. **Determining dates**: If the request involves relative dates (today, tomorrow, next week, etc.), call `session_status` first to get the real current date — never guess.
 2. **Creating events**: Do NOT add attendees unless the user explicitly asks.
-3. Times in ISO8601 (`YYYY-MM-DDTHH:MM:SS`), default timezone `Asia/Dubai` (GST, UTC+4)
+3. Times in ISO8601 (`YYYY-MM-DDTHH:MM:SS`), timezone from config (default `Asia/Dubai`)
 4. When event ID needed, use `list` first to get full ID, then operate
 5. On auth error or missing credentials, collect `client_id`, `client_secret`, `refresh_token` from the user in chat and write the credentials file for them (see Setup section)
 
