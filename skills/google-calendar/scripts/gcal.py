@@ -56,24 +56,19 @@ GST = timezone(timedelta(hours=4))  # Asia/Dubai fixed offset for naive datetime
 
 def get_service():
     if not CREDENTIALS_FILE.exists():
-        print(f"[ERROR] Credentials file not found: {CREDENTIALS_FILE}", file=sys.stderr)
-        print(f"\nTo set up Google Calendar credentials:\n"
-              f"1. Go to https://console.cloud.google.com/ → APIs & Services → Credentials\n"
-              f"2. Create an OAuth 2.0 Client ID (type: Desktop app)\n"
-              f"3. Enable the Google Calendar API for your project\n"
-              f"4. Obtain a refresh_token with scope https://www.googleapis.com/auth/calendar\n"
-              f"5. Save the JSON file to {CREDENTIALS_FILE} with fields:\n"
-              f"   client_id, client_secret, refresh_token, token_uri\n"
-              f"\nExample:\n"
-              f'  mkdir -p {CREDENTIALS_FILE.parent}\n'
-              f'  cat > {CREDENTIALS_FILE} << \'EOF\'\n'
-              f'  {{\n'
-              f'    "client_id": "YOUR_CLIENT_ID",\n'
-              f'    "client_secret": "YOUR_CLIENT_SECRET",\n'
-              f'    "refresh_token": "YOUR_REFRESH_TOKEN",\n'
-              f'    "token_uri": "https://oauth2.googleapis.com/token"\n'
-              f'  }}\n'
-              f'  EOF', file=sys.stderr)
+        print(f"[SETUP NEEDED] Google Calendar credentials not found.", file=sys.stderr)
+        print(f"\nPlease provide the following Google OAuth values:\n"
+              f"  1. client_id\n"
+              f"  2. client_secret\n"
+              f"  3. refresh_token\n"
+              f"\nHow to obtain them:\n"
+              f"  - Go to https://console.cloud.google.com/ → APIs & Services → Credentials\n"
+              f"  - Create an OAuth 2.0 Client ID (type: Desktop app)\n"
+              f"  - Enable the Google Calendar API for your project\n"
+              f"  - Use https://developers.google.com/oauthplayground to get a refresh_token\n"
+              f"    (scope: https://www.googleapis.com/auth/calendar)\n"
+              f"\nOnce you have the values, share them in chat and I will save them to:\n"
+              f"  {CREDENTIALS_FILE}", file=sys.stderr)
         sys.exit(1)
 
     with open(CREDENTIALS_FILE) as f:

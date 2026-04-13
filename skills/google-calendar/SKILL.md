@@ -9,39 +9,42 @@ Manage Google Calendar via Google Calendar API v3 (CRUD + sharing).
 
 ## Setup
 
-The script requires a Python virtual environment with Google API dependencies, and a Google OAuth credentials file.
+The script requires a Python virtual environment and Google OAuth credentials. Both are configured interactively through chat.
 
 ### Step 1: Install dependencies (run once)
+
+When the skill is first used and the venv is missing, the script will print setup commands. Execute them:
 
 ```bash
 python3 -m venv ~/.openclaw/skills/google-calendar/.venv
 ~/.openclaw/skills/google-calendar/.venv/bin/pip install google-api-python-client google-auth-oauthlib python-dateutil
 ```
 
-**If dependencies are missing**, the script will print an error with the exact setup commands — follow them.
-
-### Step 2: Provide Google OAuth credentials
+### Step 2: Configure Google OAuth credentials
 
 The script reads credentials from `~/.openclaw/workspace/.credentials/google-calendar.json`.
 
-**If the credentials file is missing**, the script will print setup instructions. The file must contain:
+**When credentials are missing**, do NOT ask the user to edit files manually. Instead, collect the values in chat and write the file automatically:
 
-```json
+1. Tell the user they need a Google OAuth credential. Briefly explain how to obtain one (see references/config.md).
+2. Ask the user to provide these values in chat: `client_id`, `client_secret`, `refresh_token`
+3. Once all three values are provided, write the credentials file:
+
+```bash
+mkdir -p ~/.openclaw/workspace/.credentials
+cat > ~/.openclaw/workspace/.credentials/google-calendar.json << 'EOF'
 {
-  "client_id": "YOUR_CLIENT_ID",
-  "client_secret": "YOUR_CLIENT_SECRET",
-  "refresh_token": "YOUR_REFRESH_TOKEN",
+  "client_id": "<client_id>",
+  "client_secret": "<client_secret>",
+  "refresh_token": "<refresh_token>",
   "token_uri": "https://oauth2.googleapis.com/token"
 }
+EOF
 ```
 
-To obtain these values:
+4. Verify by running `gcal.py list today`.
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials
-2. Create an OAuth 2.0 Client ID (type: Desktop app)
-3. Enable the **Google Calendar API** for your project
-4. Use the OAuth playground or a one-time script to obtain a `refresh_token` with scope `https://www.googleapis.com/auth/calendar`
-5. Save the JSON file to `~/.openclaw/workspace/.credentials/google-calendar.json`
+**Do not** instruct the user to manually create or edit the credentials file. Collect the values in chat and write the file for them.
 
 ## Tool Script
 
@@ -134,7 +137,7 @@ python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py share <email> [reader
 2. **Creating events**: Do NOT add attendees unless the user explicitly asks.
 3. Times in ISO8601 (`YYYY-MM-DDTHH:MM:SS`), default timezone `Asia/Dubai` (GST, UTC+4)
 4. When event ID needed, use `list` first to get full ID, then operate
-5. On auth error or missing credentials, guide the user to create `~/.openclaw/workspace/.credentials/google-calendar.json` (see Setup section)
+5. On auth error or missing credentials, collect `client_id`, `client_secret`, `refresh_token` from the user in chat and write the credentials file for them (see Setup section)
 
 ## Configuration
 

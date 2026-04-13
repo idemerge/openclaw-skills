@@ -13,6 +13,8 @@ Location: `~/.openclaw/workspace/.credentials/google-calendar.json`
 
 ## How to Obtain Credentials
 
+When the user needs to set up Google Calendar credentials, ask them to provide three values in chat. Do NOT ask them to create or edit files manually.
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com/) → **APIs & Services** → **Credentials**
 2. Create a project (or select an existing one)
 3. Click **Create Credentials** → **OAuth 2.0 Client ID** → Application type: **Desktop app**
@@ -23,19 +25,7 @@ Location: `~/.openclaw/workspace/.credentials/google-calendar.json`
    - Click the gear icon → check "Use your own OAuth credentials" → enter `client_id` and `client_secret`
    - Select scope `https://www.googleapis.com/auth/calendar` → Authorize APIs
    - Click "Exchange authorization code for tokens" → copy the `refresh_token`
-7. Save the credentials file:
-
-```bash
-mkdir -p ~/.openclaw/workspace/.credentials
-cat > ~/.openclaw/workspace/.credentials/google-calendar.json << 'EOF'
-{
-  "client_id": "YOUR_CLIENT_ID",
-  "client_secret": "YOUR_CLIENT_SECRET",
-  "refresh_token": "YOUR_REFRESH_TOKEN",
-  "token_uri": "https://oauth2.googleapis.com/token"
-}
-EOF
-```
+7. Share the three values (`client_id`, `client_secret`, `refresh_token`) in chat — the agent will write the credentials file automatically
 
 ## OAuth Scope
 
