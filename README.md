@@ -12,7 +12,7 @@ Manage Google Calendar via Google Calendar API v3.
 - Natural language quick-add (`gcal.py quick "Meeting tomorrow at 3pm"`)
 - Calendar sharing with permission management
 - Chat-based OAuth credential setup (no manual file editing)
-- Configurable timezone (default: `Asia/Shanghai`)
+- Configurable timezone (default: `Asia/Dubai`)
 - Python venv with auto-re-exec for dependencies
 
 ### microsoft

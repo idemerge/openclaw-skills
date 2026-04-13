@@ -11,7 +11,7 @@ The skill needs three credential values and one timezone setting:
 | `client_id` | OAuth 2.0 Client ID from Google Cloud Console | `google.json` |
 | `client_secret` | OAuth 2.0 Client Secret from Google Cloud Console | `google.json` |
 | `refresh_token` | Long-lived token obtained via authorization flow | `google.json` |
-| `timezone` | IANA timezone name (default: `Asia/Shanghai`) | `google-config.json` |
+| `timezone` | IANA timezone name (default: `Asia/Dubai`) | `google-config.json` |
 
 Both files are stored in `~/.openclaw/workspace/.credentials/`.
 
@@ -107,7 +107,7 @@ python3 ~/.openclaw/skills/google/scripts/gcal.py check-cred
 
 ### Step 6: Set Timezone
 
-Ask the user what timezone they want. If they don't specify, default to `Asia/Shanghai`.
+Ask the user what timezone they want. If they don't specify, default to `Asia/Dubai`.
 
 Write the config file:
 

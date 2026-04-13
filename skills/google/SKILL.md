@@ -74,7 +74,7 @@ EOF
 
 ### Step 3: Set timezone
 
-After credentials are configured, ask the user for their timezone. If not specified, default to `Asia/Shanghai`.
+After credentials are configured, ask the user for their timezone. If not specified, default to `Asia/Dubai`.
 
 ```bash
 mkdir -p ~/.openclaw/workspace/.credentials
@@ -147,7 +147,7 @@ Verify with `gcal.py show-config`.
 
 ## 📌 Default Behavior Rules
 
-> **Timezone is per-user config, default `Asia/Shanghai` on first setup.**
+> **Timezone is per-user config, default `Asia/Dubai` on first setup.**
 >
 > - Read timezone from `google-config.json`. If not configured, fall back to system local timezone.
 > - Display and discuss all times in the configured timezone.
@@ -233,7 +233,7 @@ python3 ~/.openclaw/skills/google/scripts/gcal.py show-config
 
 1. **Determining dates**: If the request involves relative dates (today, tomorrow, next week, etc.), call `session_status` first to get the real current date — never guess.
 2. **Creating events**: Do NOT add attendees unless the user explicitly asks.
-3. Times in ISO8601 (`YYYY-MM-DDTHH:MM:SS`), timezone from config (default `Asia/Shanghai`)
+3. Times in ISO8601 (`YYYY-MM-DDTHH:MM:SS`), timezone from config (default `Asia/Dubai`)
 4. When event ID needed, use `list` first to get full ID, then operate
 5. On auth error or missing credentials, follow the authorization flow in Setup section (generate auth URL → collect code → exchange for refresh_token → write credentials file)
 
