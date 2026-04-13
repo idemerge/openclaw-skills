@@ -41,17 +41,23 @@ Walk the user through these steps in chat. Wait for the user to complete each st
 ### Step 3: Configure API Permissions
 
 1. Go to **API permissions** → **Add a permission** → **Microsoft Graph** → **Delegated permissions**
-2. Add: `Calendars.ReadWrite`, `User.Read`, `offline_access`
-3. For OneDrive access, also add: `Files.ReadWrite.All`
-4. For Outlook mail access, also add: `Mail.ReadWrite`, `Mail.Send`
-5. Click **Grant admin consent** (if you have admin rights)
+2. Add **all** of the following permissions:
+   - `Calendars.ReadWrite` — read and write calendar events
+   - `Files.ReadWrite.All` — read and write OneDrive files
+   - `Mail.ReadWrite` — read and write Outlook mail
+   - `Mail.Send` — send emails
+   - `User.Read` — read user profile
+   - `offline_access` — maintain access via refresh token
+3. Click **Grant admin consent** (if you have admin rights)
+
+> **Important**: Add all permissions at once before proceeding to Step 4. If you add more permissions later, you must re-authorize to get a new refresh_token that includes the new scopes.
 
 ### Step 4: Get the Refresh Token
 
 1. Open the following URL in a browser (replace `{client_id}` with your actual client ID):
 
 ```
-https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id={client_id}&response_type=code&redirect_uri=https%3A%2F%2Flogin.microsoftonline.com%2Fcommon%2Foauth2%2Fnativeclient&response_mode=query&scope=offline_access%20Calendars.ReadWrite%20User.Read&state=12345
+https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id={client_id}&response_type=code&redirect_uri=https%3A%2F%2Flogin.microsoftonline.com%2Fcommon%2Foauth2%2Fnativeclient&response_mode=query&scope=offline_access%20Calendars.ReadWrite%20Files.ReadWrite.All%20Mail.ReadWrite%20Mail.Send%20User.Read&state=12345
 ```
 
 2. Sign in with your Microsoft account and grant consent
@@ -61,7 +67,7 @@ https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id={cli
 ```bash
 curl -X POST https://login.microsoftonline.com/consumers/oauth2/v2.0/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "client_id={client_id}&client_secret={client_secret}&scope=offline_access Calendars.ReadWrite User.Read&code={authorization_code}&redirect_uri=https://login.microsoftonline.com/common/oauth2/nativeclient&grant_type=authorization_code"
+  -d "client_id={client_id}&client_secret={client_secret}&scope=offline_access Calendars.ReadWrite Files.ReadWrite.All Mail.ReadWrite Mail.Send User.Read&code={authorization_code}&redirect_uri=https://login.microsoftonline.com/common/oauth2/nativeclient&grant_type=authorization_code"
 ```
 
 5. The response JSON contains a `refresh_token` — copy it
@@ -100,7 +106,7 @@ Common timezone values: `Asia/Dubai`, `Asia/Shanghai`, `America/New_York`, `Euro
 1. Ask which fields to update
 2. Collect new values in chat
 3. Overwrite the credentials file (same command as Step 5)
-4. Verify with `ms_calendar.py list`
+4. Verify with `ms_graph.py calendar list`
 
 ## Delete Credentials
 
