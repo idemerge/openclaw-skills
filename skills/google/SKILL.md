@@ -33,7 +33,7 @@ The script reads credentials from `~/.openclaw/workspace/.credentials/google.jso
    ```
    https://accounts.google.com/o/oauth2/auth?client_id=<CLIENT_ID>&redirect_uri=http://localhost&response_type=code&scope=https://www.googleapis.com/auth/calendar&access_type=offline&prompt=consent
    ```
-5. Send the URL to the user. Warn them: if they see "Google hasn't verified this app", click **Advanced** → **Go to [App Name] (unsafe)**
+5. Send the URL to the user. Remind them: if you see "Google hasn't verified this app", click **Advanced** → **Go to [App Name] (not verified)** — this is normal for apps in Testing mode, you are the developer
 6. After authorization, the browser redirects to `localhost` (error page is expected). Ask the user to copy the `code=` parameter from the address bar
 7. Exchange the authorization code for a refresh_token using curl:
    ```bash

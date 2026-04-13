@@ -87,8 +87,7 @@ def get_service():
               f"  - Go to https://console.cloud.google.com/ → APIs & Services → Credentials\n"
               f"  - Create an OAuth 2.0 Client ID (type: Desktop app)\n"
               f"  - Enable the Google Calendar API for your project\n"
-              f"  - Use https://developers.google.com/oauthplayground to get a refresh_token\n"
-              f"    (scope: https://www.googleapis.com/auth/calendar)\n"
+              f"  - Use the authorization URL flow (see references/config.md) to get a refresh_token\n"
               f"\nOnce you have the values, share them in chat and I will save them to:\n"
               f"  {CREDENTIALS_FILE}", file=sys.stderr)
         sys.exit(1)

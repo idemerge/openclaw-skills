@@ -66,8 +66,7 @@ https://accounts.google.com/o/oauth2/auth?client_id=<CLIENT_ID>&redirect_uri=htt
 ```
 
 2. Tell the user to click the link and authorize. Warn them about the "unverified app" screen:
-   - If you see **"Google hasn't verified this app"**, click **Advanced** → **Go to [App Name] (unsafe)**
-   - This is normal for apps in Testing mode — you are the developer, it's safe to proceed
+   - If you see **"Google hasn't verified this app"**, click **Advanced** → **Go to [App Name] (not verified)** — this is normal for apps in Testing mode, you are the developer so it's safe to proceed
 
 3. After authorization, the browser will redirect to `localhost` which will show an error page — **this is expected**. Ask the user to copy the `code=` parameter from the browser's address bar.
 
@@ -176,7 +175,7 @@ rm ~/.openclaw/workspace/.credentials/google-config.json
 | Problem | Solution |
 |---------|----------|
 | `redirect_uri_mismatch` error | Do NOT use OAuth Playground redirect URI. Use `http://localhost` as redirect_uri (matches Desktop app default) |
-| "Google hasn't verified this app" warning | Click **Advanced** → **Go to [App Name] (unsafe)**. This is normal for Testing mode |
+| "Google hasn't verified this app" warning | Click **Advanced** → **Go to [App Name] (not verified)**. This is normal for apps in Testing mode |
 | `access_denied` during OAuth | Make sure your email is added as a test user on the consent screen (Step 3) |
 | `invalid_grant` on refresh_token | The refresh_token may have expired or been revoked — generate a new one (Step 4) |
 | 403 Forbidden on Calendar API | Make sure the Google Calendar API is enabled (Step 2) |
