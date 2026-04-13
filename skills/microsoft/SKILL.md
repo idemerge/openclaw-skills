@@ -1,6 +1,6 @@
 ---
 name: microsoft
-description: Manage Microsoft 365 via Microsoft Graph API. Activate when the user asks about Outlook calendar events, OneDrive files, or Outlook email. Also activate when the user wants to set up, update, or delete Microsoft Graph credentials, or change the timezone. Supports calendar CRUD + sharing with Teams meetings, OneDrive file operations, and Outlook mail. See references/config.md for credential management.
+description: Manage Microsoft 365 via Microsoft Graph API. Activate when the user asks about Outlook calendar events, Teams meetings, OneDrive files, or Outlook email. Also activate when the user wants to create a Teams meeting or schedule something on Teams calendar. Also activate when the user wants to set up, update, or delete Microsoft Graph credentials, or change the timezone. Supports calendar CRUD + sharing with Teams online meetings, OneDrive file operations, and Outlook mail. See references/config.md for credential management.
 ---
 
 # Microsoft 365 Skill
