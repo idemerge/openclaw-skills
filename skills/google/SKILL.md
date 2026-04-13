@@ -28,8 +28,23 @@ The script reads credentials from `~/.openclaw/workspace/.credentials/google.jso
 
 1. Read `references/config.md` for the full step-by-step guide
 2. Walk the user through the setup in chat, one step at a time — wait for the user to complete each step before proceeding
-3. Collect `client_id`, `client_secret`, `refresh_token` from the user in chat
-4. Write the credentials file automatically:
+3. Collect `client_id` and `client_secret` from the user in chat
+4. Generate the authorization URL using `http://localhost` as redirect_uri (NOT OAuth Playground):
+   ```
+   https://accounts.google.com/o/oauth2/auth?client_id=<CLIENT_ID>&redirect_uri=http://localhost&response_type=code&scope=https://www.googleapis.com/auth/calendar&access_type=offline&prompt=consent
+   ```
+5. Send the URL to the user. Warn them: if they see "Google hasn't verified this app", click **Advanced** → **Go to [App Name] (unsafe)**
+6. After authorization, the browser redirects to `localhost` (error page is expected). Ask the user to copy the `code=` parameter from the address bar
+7. Exchange the authorization code for a refresh_token using curl:
+   ```bash
+   curl -s -X POST https://oauth2.googleapis.com/token \
+     -d "code=<AUTHORIZATION_CODE>" \
+     -d "client_id=<CLIENT_ID>" \
+     -d "client_secret=<CLIENT_SECRET>" \
+     -d "redirect_uri=http://localhost" \
+     -d "grant_type=authorization_code"
+   ```
+8. Write the credentials file automatically:
 
 ```bash
 mkdir -p ~/.openclaw/workspace/.credentials
@@ -43,13 +58,14 @@ cat > ~/.openclaw/workspace/.credentials/google.json << 'EOF'
 EOF
 ```
 
-5. Verify by running `gcal.py list today`
+9. Verify by running `gcal.py check-cred`
 
 **Do not** instruct the user to manually create or edit the credentials file. Collect the values in chat and write the file for them.
+**Do not** use OAuth Playground — it requires adding its redirect URI to Google Cloud Console, which causes `redirect_uri_mismatch` errors by default.
 
 ### Step 3: Set timezone
 
-After credentials are configured, ask the user for their timezone. If not specified, default to `Asia/Dubai`.
+After credentials are configured, ask the user for their timezone. If not specified, default to `Asia/Shanghai`.
 
 ```bash
 mkdir -p ~/.openclaw/workspace/.credentials
@@ -122,7 +138,7 @@ Verify with `gcal.py show-config`.
 
 ## 📌 Default Behavior Rules
 
-> **Timezone is per-user config, default `Asia/Dubai` on first setup.**
+> **Timezone is per-user config, default `Asia/Shanghai` on first setup.**
 >
 > - Read timezone from `google-config.json`. If not configured, fall back to system local timezone.
 > - Display and discuss all times in the configured timezone.
@@ -208,9 +224,9 @@ python3 ~/.openclaw/skills/google/scripts/gcal.py show-config
 
 1. **Determining dates**: If the request involves relative dates (today, tomorrow, next week, etc.), call `session_status` first to get the real current date — never guess.
 2. **Creating events**: Do NOT add attendees unless the user explicitly asks.
-3. Times in ISO8601 (`YYYY-MM-DDTHH:MM:SS`), timezone from config (default `Asia/Dubai`)
+3. Times in ISO8601 (`YYYY-MM-DDTHH:MM:SS`), timezone from config (default `Asia/Shanghai`)
 4. When event ID needed, use `list` first to get full ID, then operate
-5. On auth error or missing credentials, collect `client_id`, `client_secret`, `refresh_token` from the user in chat and write the credentials file for them (see Setup section)
+5. On auth error or missing credentials, follow the authorization flow in Setup section (generate auth URL → collect code → exchange for refresh_token → write credentials file)
 
 ## Configuration
 
