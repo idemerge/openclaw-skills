@@ -1,61 +1,56 @@
-# openclaw-skills
+# CLAUDE.md
 
-Collection of OpenClaw skills.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Structure
+## What This Repo Is
+
+A collection of [OpenClaw](https://github.com/idemerge/openclaw-skills) skills following the [AgentSkills](https://agentskills.io) spec. Each skill is a self-contained directory that teaches the OpenClaw agent how to perform a specific domain task.
+
+## Skill Anatomy
 
 ```
-openclaw-skills/
-├── skills/                  # Skill source directories
-│   └── <skill-name>/
-│       ├── SKILL.md
-│       ├── scripts/
-│       ├── references/
-│       └── assets/
-├── skills-tars/             # Packaged skill archives
-│   └── <skill-name>.tar.gz
-└── CLAUDE.md
+skills/<skill-name>/
+├── SKILL.md          # Required — YAML frontmatter (name, description) + markdown instructions
+├── scripts/          # Optional — executable code for deterministic reliability
+├── references/       # Optional — documentation loaded into context as needed
+└── assets/           # Optional — files used in output (templates, icons, etc.)
 ```
 
-## Packaging Skills
+Key design rules:
+- **SKILL.md frontmatter `description` is the primary trigger** — it determines when the agent activates the skill. Put all "when to use" info here, not in the body.
+- **Body < 500 lines** — move detailed reference material into `references/` files and link from SKILL.md.
+- **Progressive disclosure** — metadata always loaded (~100 words), body loaded on trigger (<5k words), references loaded as needed.
+- **Scripts auto-re-exec under venv** — if a `.venv/bin/python3` exists relative to the skill dir, scripts re-exec themselves under it automatically (shebang can't use `~`).
 
-After modifying any skill under `skills/`, rebuild the corresponding tar.gz archive in `skills-tars/`:
+## Packaging
+
+After modifying any skill, rebuild its tar.gz archive:
 
 ```bash
-cd /home/work/projects/openclaw-skills
 rm -f skills-tars/<skill-name>.tar.gz
 tar czf skills-tars/<skill-name>.tar.gz \
-  --exclude='__pycache__' \
-  --exclude='*.pyc' \
-  --exclude='*.pyo' \
-  --exclude='.venv' \
-  --exclude='*.swp' \
-  --exclude='*.swo' \
+  --exclude='__pycache__' --exclude='*.pyc' --exclude='*.pyo' \
+  --exclude='.venv' --exclude='*.swp' --exclude='*.swo' \
   -C skills <skill-name>
 ```
 
-Example for google-calendar:
+Verify: `tar tzf skills-tars/<skill-name>.tar.gz`
 
-```bash
-cd /home/work/projects/openclaw-skills
-rm -f skills-tars/google-calendar.tar.gz
-tar czf skills-tars/google-calendar.tar.gz \
-  --exclude='__pycache__' --exclude='*.pyc' --exclude='*.pyo' \
-  --exclude='.venv' --exclude='*.swp' --exclude='*.swo' \
-  -C skills google-calendar
-```
+## Credential Handling Pattern
 
-Verify contents:
+Skills that require external API credentials should:
+1. **Never** ask the user to manually edit files
+2. Collect credential values in chat and write the file programmatically
+3. Provide a `check-cred` script command to verify credential status
+4. Include setup/update/delete flows in `references/config.md`
+5. When credentials are missing, print `[SETUP NEEDED]` with a brief explanation pointing the agent to the reference doc
 
-```bash
-tar tzf skills-tars/<skill-name>.tar.gz
-```
+## Git
 
-## Git Remote
+- Remote uses `github-idemerge` SSH host alias from `~/.ssh/config` (key: `~/.ssh/id_ed25519_idemerge`)
+- Repo: `git@github-idemerge:idemerge/openclaw-skills.git`
 
-Uses `github-idemerge` SSH host alias from `~/.ssh/config` for the idemerge account.
-
-## Language Rules
+## Language
 
 - Always respond in Chinese-simplified
 - Code, scripts, and documents must be written in English
