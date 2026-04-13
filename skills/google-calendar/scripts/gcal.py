@@ -16,10 +16,17 @@ Credentials file: ~/.openclaw/workspace/.credentials/google-calendar.json
 """
 
 import sys
+import os
 import json
 import re
 from datetime import datetime, timedelta, timezone, tzinfo
 from pathlib import Path
+
+# Re-exec under the venv Python if available (shebang can't use ~)
+_SKILL_DIR = Path(__file__).resolve().parent.parent
+_VENV_PYTHON = _SKILL_DIR / ".venv/bin/python3"
+if _VENV_PYTHON.exists() and sys.executable != str(_VENV_PYTHON):
+    os.execv(str(_VENV_PYTHON), [str(_VENV_PYTHON)] + sys.argv)
 
 try:
     from dateutil import parser as date_parser
@@ -28,8 +35,14 @@ try:
     from google.auth.transport.requests import Request
     from googleapiclient.discovery import build
 except ImportError as e:
+    VENV = Path.home() / ".openclaw/skills/google-calendar/.venv"
     print(f"[ERROR] Missing dependency: {e}")
-    print("Run: python3 -m pip install google-api-python-client google-auth-oauthlib python-dateutil --break-system-packages")
+    if not VENV.exists():
+        print(f"Run the following to set up the virtual environment:\n"
+              f"  python3 -m venv {VENV}\n"
+              f"  {VENV}/bin/pip install google-api-python-client google-auth-oauthlib python-dateutil")
+    else:
+        print(f"Run: {VENV}/bin/pip install google-api-python-client google-auth-oauthlib python-dateutil")
     sys.exit(1)
 
 CREDENTIALS_FILE = Path.home() / ".openclaw/workspace/.credentials/google-calendar.json"
@@ -44,6 +57,23 @@ GST = timezone(timedelta(hours=4))  # Asia/Dubai fixed offset for naive datetime
 def get_service():
     if not CREDENTIALS_FILE.exists():
         print(f"[ERROR] Credentials file not found: {CREDENTIALS_FILE}", file=sys.stderr)
+        print(f"\nTo set up Google Calendar credentials:\n"
+              f"1. Go to https://console.cloud.google.com/ → APIs & Services → Credentials\n"
+              f"2. Create an OAuth 2.0 Client ID (type: Desktop app)\n"
+              f"3. Enable the Google Calendar API for your project\n"
+              f"4. Obtain a refresh_token with scope https://www.googleapis.com/auth/calendar\n"
+              f"5. Save the JSON file to {CREDENTIALS_FILE} with fields:\n"
+              f"   client_id, client_secret, refresh_token, token_uri\n"
+              f"\nExample:\n"
+              f'  mkdir -p {CREDENTIALS_FILE.parent}\n'
+              f'  cat > {CREDENTIALS_FILE} << \'EOF\'\n'
+              f'  {{\n'
+              f'    "client_id": "YOUR_CLIENT_ID",\n'
+              f'    "client_secret": "YOUR_CLIENT_SECRET",\n'
+              f'    "refresh_token": "YOUR_REFRESH_TOKEN",\n'
+              f'    "token_uri": "https://oauth2.googleapis.com/token"\n'
+              f'  }}\n'
+              f'  EOF', file=sys.stderr)
         sys.exit(1)
 
     with open(CREDENTIALS_FILE) as f:

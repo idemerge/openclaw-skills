@@ -11,6 +11,32 @@ Location: `~/.openclaw/workspace/.credentials/google-calendar.json`
 | refresh_token | Long-lived refresh token |
 | token_uri | `https://oauth2.googleapis.com/token` |
 
+## How to Obtain Credentials
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/) → **APIs & Services** → **Credentials**
+2. Create a project (or select an existing one)
+3. Click **Create Credentials** → **OAuth 2.0 Client ID** → Application type: **Desktop app**
+4. Note down the `client_id` and `client_secret`
+5. Go to **Library** → search **Google Calendar API** → **Enable**
+6. Obtain a `refresh_token` using the OAuth 2.0 Playground:
+   - Visit https://developers.google.com/oauthplayground
+   - Click the gear icon → check "Use your own OAuth credentials" → enter `client_id` and `client_secret`
+   - Select scope `https://www.googleapis.com/auth/calendar` → Authorize APIs
+   - Click "Exchange authorization code for tokens" → copy the `refresh_token`
+7. Save the credentials file:
+
+```bash
+mkdir -p ~/.openclaw/workspace/.credentials
+cat > ~/.openclaw/workspace/.credentials/google-calendar.json << 'EOF'
+{
+  "client_id": "YOUR_CLIENT_ID",
+  "client_secret": "YOUR_CLIENT_SECRET",
+  "refresh_token": "YOUR_REFRESH_TOKEN",
+  "token_uri": "https://oauth2.googleapis.com/token"
+}
+EOF
+```
+
 ## OAuth Scope
 
 ```

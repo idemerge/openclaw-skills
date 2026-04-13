@@ -7,15 +7,45 @@ description: Manage Google Calendar via Google Calendar API. Activate when the u
 
 Manage Google Calendar via Google Calendar API v3 (CRUD + sharing).
 
-## Dependencies
+## Setup
+
+The script requires a Python virtual environment with Google API dependencies, and a Google OAuth credentials file.
+
+### Step 1: Install dependencies (run once)
 
 ```bash
-python3 -m pip install google-api-python-client google-auth-oauthlib python-dateutil --break-system-packages
+python3 -m venv ~/.openclaw/skills/google-calendar/.venv
+~/.openclaw/skills/google-calendar/.venv/bin/pip install google-api-python-client google-auth-oauthlib python-dateutil
 ```
+
+**If dependencies are missing**, the script will print an error with the exact setup commands — follow them.
+
+### Step 2: Provide Google OAuth credentials
+
+The script reads credentials from `~/.openclaw/workspace/.credentials/google-calendar.json`.
+
+**If the credentials file is missing**, the script will print setup instructions. The file must contain:
+
+```json
+{
+  "client_id": "YOUR_CLIENT_ID",
+  "client_secret": "YOUR_CLIENT_SECRET",
+  "refresh_token": "YOUR_REFRESH_TOKEN",
+  "token_uri": "https://oauth2.googleapis.com/token"
+}
+```
+
+To obtain these values:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials
+2. Create an OAuth 2.0 Client ID (type: Desktop app)
+3. Enable the **Google Calendar API** for your project
+4. Use the OAuth playground or a one-time script to obtain a `refresh_token` with scope `https://www.googleapis.com/auth/calendar`
+5. Save the JSON file to `~/.openclaw/workspace/.credentials/google-calendar.json`
 
 ## Tool Script
 
-`scripts/gcal.py` — Credentials at `~/.openclaw/workspace/.credentials/google-calendar.json`.
+`scripts/gcal.py` — Auto-detects and uses the venv Python. Credentials at `~/.openclaw/workspace/.credentials/google-calendar.json`.
 
 ---
 
@@ -104,7 +134,7 @@ python3 ~/.openclaw/skills/google-calendar/scripts/gcal.py share <email> [reader
 2. **Creating events**: Do NOT add attendees unless the user explicitly asks.
 3. Times in ISO8601 (`YYYY-MM-DDTHH:MM:SS`), default timezone `Asia/Dubai` (GST, UTC+4)
 4. When event ID needed, use `list` first to get full ID, then operate
-5. On auth error, check that `~/.openclaw/workspace/.credentials/google-calendar.json` exists
+5. On auth error or missing credentials, guide the user to create `~/.openclaw/workspace/.credentials/google-calendar.json` (see Setup section)
 
 ## Configuration
 
