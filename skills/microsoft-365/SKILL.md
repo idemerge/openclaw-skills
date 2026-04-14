@@ -59,6 +59,14 @@ wait
 The login command times out after 3 minutes. If it times out, tell the user and offer to try again.
 When showing the device code to the user, mention they have about 3 minutes to complete the browser login.
 
+If login fails with "Need admin approval", the user is on an enterprise Microsoft 365 tenant where the admin has restricted app consent. Tell the user:
+> Your organization requires admin approval for this app. Please ask your IT admin to visit the following URL to grant consent:
+> `https://login.microsoftonline.com/<tenant-id>/adminconsent?client_id=14d82eec-204b-4c2f-b7e8-296a70dab67e`
+> Replace `<tenant-id>` with your organization's tenant ID.
+> Alternatively, you can use a personal Microsoft account (Outlook.com / Hotmail) which does not require admin approval.
+
+See `references/config.md` → **Troubleshooting** for details.
+
 **Step 1e — Verify:**
 ```bash
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py status
