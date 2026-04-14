@@ -12,7 +12,7 @@ metadata:
       - "references/*"
 ---
 
-# Microsoft 365 Skill (v2)
+# Microsoft 365 Skill
 
 Unified access to Microsoft 365 services via Microsoft Graph API — Calendar, OneDrive, and Outlook Mail.
 
@@ -63,40 +63,8 @@ The browser shows a permissions consent screen for **Microsoft Graph Command Lin
 
 ### Step 2: Check Timezone (after every login)
 
-After every successful login, **always** check the timezone config:
-
-```bash
-cat ~/.openclaw/workspace/.credentials/ms-graph-config.json 2>/dev/null
-```
-
-**If config does not exist** — ask the user to choose a timezone. Do NOT set one silently.
-
-**If config already exists** — show the current value and ask the user to confirm:
-> "Your timezone is currently set to `Asia/Dubai`. Keep it or change?"
-
-Only proceed if the user confirms. If they want to change, let them pick from:
-
-| Timezone | Region |
-|----------|--------|
-| `Asia/Shanghai` | China, Hong Kong, Taiwan |
-| `Asia/Dubai` | UAE, Gulf |
-| `Asia/Tokyo` | Japan |
-| `Asia/Singapore` | Singapore, Malaysia |
-| `Europe/London` | UK |
-| `America/New_York` | US East |
-| `America/Los_Angeles` | US West |
-| `UTC` | UTC |
-
-Once confirmed, write the config:
-
-```bash
-mkdir -p ~/.openclaw/workspace/.credentials
-cat > ~/.openclaw/workspace/.credentials/ms-graph-config.json << 'EOF'
-{
-  "timezone": "<user_confirmed_timezone>"
-}
-EOF
-```
+After every successful login, **always** check and confirm the timezone with the user.
+See `references/config.md` → **Timezone Setup** for the full procedure.
 
 **Do not skip the timezone step** — it is required for correct calendar event times.
 
@@ -126,10 +94,10 @@ See `references/config.md`.
 > - Read timezone from `ms-graph-config.json`. If not configured, fall back to `Asia/Dubai`.
 > - Display and discuss all times in the configured timezone.
 
-> **Always call `session_status` before computing any date or time.**
+> **Always determine the current date/time before computing any relative date.**
 >
 > - Never guess or assume today's date.
-> - When the user says "today", "tomorrow", "next Monday", etc., **first call `session_status`** to get the current UTC time.
+> - When the user says "today", "tomorrow", "next Monday", etc., use the agent's built-in date awareness (e.g. `date` command or system clock) to get the current time before calculating.
 
 > **No default attendees when creating events.**
 >
@@ -196,7 +164,7 @@ python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py show-config
 
 ## Workflow
 
-1. **Determining dates**: If the request involves relative dates, call `session_status` first — never guess.
+1. **Determining dates**: If the request involves relative dates, check the current date/time first — never guess.
 2. **Creating events**: Do NOT add attendees unless the user explicitly asks.
 3. Times in ISO8601 (`YYYY-MM-DDTHH:MM:SS`), timezone from config (default `Asia/Dubai`).
 4. On auth error or NOT_LOGGED_IN, instruct user to run `ms_graph.py login`.

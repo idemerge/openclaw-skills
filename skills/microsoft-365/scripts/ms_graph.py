@@ -7,7 +7,6 @@ Usage:
   ms_graph.py login          # Sign in via browser device code
   ms_graph.py logout         # Clear token cache
   ms_graph.py status         # Check login status
-  ms_graph.py check-cred     # Alias for status
   ms_graph.py show-config    # Show timezone and login status
 
   ms_graph.py calendar create   --subject "Meeting" --start "2026-03-30T10:00:00" --end "2026-03-30T11:00:00" [options]
@@ -79,10 +78,12 @@ def _ensure_msal():
         import msal  # noqa
     except ImportError:
         print("[INFO] Installing msal...", file=sys.stderr)
-        args = [sys.executable, "-m", "pip", "install", "msal", "-q"]
-        if os.name != "nt":
-            args.insert(-1, "--break-system-packages")
-        subprocess.check_call(args)
+        cmd = [sys.executable, "-m", "pip", "install", "msal", "-q"]
+        try:
+            subprocess.check_call(cmd)
+        except subprocess.CalledProcessError:
+            # Retry with --break-system-packages for externally-managed environments (Debian/Ubuntu)
+            subprocess.check_call(cmd + ["--break-system-packages"])
         import importlib
         importlib.invalidate_caches()
 
@@ -129,6 +130,8 @@ def get_access_token(force_refresh: bool = False) -> str:
 # ── Auth commands ──────────────────────────────────────────────────────────────
 
 def cmd_login(args):
+    # Clean up stale device code file from a previous interrupted login
+    DEVICE_CODE_PATH.unlink(missing_ok=True)
     _ensure_msal()
     app, cache = _get_app()
     flow = app.initiate_device_flow(scopes=SCOPES)
@@ -228,31 +231,25 @@ DEFAULT_TIMEZONE = load_timezone()
 # ── API helper ─────────────────────────────────────────────────────────────────
 
 def api_request(method: str, path: str, body: dict = None, prefer: str = None) -> dict:
-    token = get_access_token()
-    url   = GRAPH_API + path
-    data  = json.dumps(body).encode() if body else None
-    req   = urllib.request.Request(url, data=data, method=method)
-    req.add_header("Authorization", f"Bearer {token}")
-    req.add_header("Content-Type", "application/json")
-    if prefer:
-        req.add_header("Prefer", prefer)
-    try:
+    url  = GRAPH_API + path
+    data = json.dumps(body).encode() if body else None
+
+    def _do_request(token: str) -> dict:
+        req = urllib.request.Request(url, data=data, method=method)
+        req.add_header("Authorization", f"Bearer {token}")
+        req.add_header("Content-Type", "application/json")
+        if prefer:
+            req.add_header("Prefer", prefer)
         with urllib.request.urlopen(req) as resp:
             content = resp.read()
             return json.loads(content) if content else {}
+
+    try:
+        return _do_request(get_access_token())
     except urllib.error.HTTPError as e:
         if e.code == 401:
-            # Retry once with forced refresh
-            token = get_access_token(force_refresh=True)
-            req2  = urllib.request.Request(url, data=data, method=method)
-            req2.add_header("Authorization", f"Bearer {token}")
-            req2.add_header("Content-Type", "application/json")
-            if prefer:
-                req2.add_header("Prefer", prefer)
             try:
-                with urllib.request.urlopen(req2) as resp2:
-                    content = resp2.read()
-                    return json.loads(content) if content else {}
+                return _do_request(get_access_token(force_refresh=True))
             except urllib.error.HTTPError as e2:
                 body_err = e2.read().decode()
                 print(f"[ERROR] API request failed: {e2.code}\n{body_err}", file=sys.stderr)
@@ -356,7 +353,7 @@ def cmd_cal_list(args):
         f"&$orderby=start/dateTime&$top=50"
         f"&$select=id,subject,start,end,location,isOnlineMeeting"
     )
-    result = api_request("GET", path)
+    result = api_request("GET", path, prefer=f'outlook.timezone="{DEFAULT_TIMEZONE}"')
     events = result.get("value", [])
     if not events:
         print(f"No events in the next {args.days} day(s).")
@@ -525,8 +522,8 @@ def cmd_od_download(args):
     filename = result.get("name", "download")
     output   = args.output or filename
     print(f"[INFO] Downloading '{filename}'...")
-    token = get_access_token()
-    req   = urllib.request.Request(dl_url, headers={"Authorization": f"Bearer {token}"})
+    # @microsoft.graph.downloadUrl is pre-signed — no Authorization header needed
+    req = urllib.request.Request(dl_url)
     with urllib.request.urlopen(req) as resp:
         with open(output, "wb") as f:
             while True:
@@ -689,11 +686,6 @@ def cmd_mail_folders(args):
 
 # ── Config commands ────────────────────────────────────────────────────────────
 
-def cmd_check_cred(args):
-    """Alias for status, kept for compatibility."""
-    cmd_status(args)
-
-
 def cmd_show_config(args):
     print(f"Timezone   : {DEFAULT_TIMEZONE}")
     print(f"Config     : {CONFIG_FILE}")
@@ -724,7 +716,6 @@ def main():
     sub.add_parser("login",      help="Sign in via browser device code")
     sub.add_parser("logout",     help="Clear token cache")
     sub.add_parser("status",     help="Check login status")
-    sub.add_parser("check-cred", help="Alias for status")
     sub.add_parser("show-config", help="Show timezone and login status")
 
     # ── Calendar ──
@@ -848,7 +839,7 @@ def main():
         cmd_login(args)
     elif args.group == "logout":
         cmd_logout(args)
-    elif args.group in ("status", "check-cred"):
+    elif args.group == "status":
         cmd_status(args)
     elif args.group == "show-config":
         cmd_show_config(args)

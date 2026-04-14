@@ -8,7 +8,7 @@ python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar create \
   --subject "Title" \
   --start "2026-03-30T10:00:00" \
   --end "2026-03-30T11:00:00" \
-  [--timezone "Asia/Shanghai"] \
+  [--timezone "Asia/Dubai"] \
   [--body "Description"] \
   [--location "Location"] \
   [--attendees a@x.com b@x.com] \
@@ -68,4 +68,4 @@ python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-remo
 - Times use ISO8601 format: `YYYY-MM-DDTHH:MM:SS`
 - Timezone comes from `ms-graph-config.json`; pass `--timezone` to override per-event
 - Do NOT add attendees unless the user explicitly asks
-- Always call `session_status` first when the request involves relative dates (today, tomorrow, next Monday)
+- Always determine the current date/time first when the request involves relative dates (today, tomorrow, next Monday)
