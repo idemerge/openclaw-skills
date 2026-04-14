@@ -50,6 +50,15 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+# ── Venv auto-setup ───────────────────────────────────────────────────────────
+# Re-exec under the skill's venv Python if available (shebang can't use ~)
+_SKILL_DIR = Path(__file__).resolve().parent.parent
+_VENV_DIR = _SKILL_DIR / ".venv"
+_VENV_PYTHON = _VENV_DIR / "bin" / "python3"
+
+if _VENV_PYTHON.exists() and sys.executable != str(_VENV_PYTHON):
+    os.execv(str(_VENV_PYTHON), [str(_VENV_PYTHON)] + sys.argv)
+
 # ── Constants ──────────────────────────────────────────────────────────────────
 
 # Microsoft Graph Command Line Tools (public client, no secret required)
@@ -77,15 +86,19 @@ def _ensure_msal():
     try:
         import msal  # noqa
     except ImportError:
-        print("[INFO] Installing msal...", file=sys.stderr)
-        cmd = [sys.executable, "-m", "pip", "install", "msal", "-q"]
-        try:
-            subprocess.check_call(cmd)
-        except subprocess.CalledProcessError:
-            # Retry with --break-system-packages for externally-managed environments (Debian/Ubuntu)
-            subprocess.check_call(cmd + ["--break-system-packages"])
-        import importlib
-        importlib.invalidate_caches()
+        if sys.prefix == sys.base_prefix:
+            # Not in a venv — create one, install msal, and re-exec
+            print("[INFO] Creating virtual environment...", file=sys.stderr)
+            subprocess.check_call([sys.executable, "-m", "venv", str(_VENV_DIR)])
+            print("[INFO] Installing msal...", file=sys.stderr)
+            subprocess.check_call([str(_VENV_PYTHON), "-m", "pip", "install", "msal", "-q"])
+            os.execv(str(_VENV_PYTHON), [str(_VENV_PYTHON)] + sys.argv)
+        else:
+            # Already in venv but msal missing — install directly
+            print("[INFO] Installing msal...", file=sys.stderr)
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "msal", "-q"])
+            import importlib
+            importlib.invalidate_caches()
 
 
 def _get_app():
