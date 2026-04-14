@@ -157,8 +157,8 @@ def cmd_login(args):
     print(f"  3. Sign in and approve permissions")
     print("=" * 52)
     print("  Note: Microsoft may ask for a verification code")
-    print("  (SMS/authenticator). This is normal and only")
-    print("  required for this login session.")
+    print("  (SMS/email/authenticator). This is normal and")
+    print("  only required for this login session.")
     print("  Waiting for login...\n")
 
     result = app.acquire_token_by_device_flow(flow)

@@ -51,7 +51,7 @@ Steps for the user:
 2. Enter the `user_code`
 3. Sign in with their Microsoft account (personal Outlook.com or enterprise Microsoft 365)
 4. Accept the permissions on the consent screen
-5. Microsoft may ask for a verification code (SMS/authenticator) — this is normal and only required for this login session
+5. Microsoft may ask for a verification code (SMS/email/authenticator) — this is normal and only required for this login session
 
 On success, `status` returns:
 ```
