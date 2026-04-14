@@ -72,7 +72,7 @@ cat ~/.openclaw/workspace/.credentials/ms-graph-config.json 2>/dev/null
 **If config does not exist** — ask the user to choose a timezone. Do NOT set one silently.
 
 **If config already exists** — show the current value and ask the user to confirm:
-> "Your timezone is currently set to `Asia/Shanghai`. Keep it or change?"
+> "Your timezone is currently set to `Asia/Dubai`. Keep it or change?"
 
 Only proceed if the user confirms. If they want to change, let them pick from:
 
@@ -121,7 +121,7 @@ See `references/config.md`.
 
 ## Default Behavior Rules
 
-> **Timezone is per-user config, default `Asia/Dubai` on first setup.**
+> **Timezone is per-user config.**
 >
 > - Read timezone from `ms-graph-config.json`. If not configured, fall back to `Asia/Dubai`.
 > - Display and discuss all times in the configured timezone.
@@ -141,136 +141,54 @@ See `references/config.md`.
 
 ## Calendar
 
-### Create event
+Quick reference (full details in `references/calendar.md`):
+
 ```bash
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar create \
-  --subject "Title" --start "2026-03-30T10:00:00" --end "2026-03-30T11:00:00" \
-  [--timezone "Asia/Dubai"] [--body "Description"] [--location "Location"] \
-  [--attendees a@x.com b@x.com] [--online]
-```
-
-### List events
-```bash
+  --subject "Title" --start "2026-03-30T10:00:00" --end "2026-03-30T11:00:00"
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar list [--days 7]
-```
-
-### Get event details
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar get --event-id <id>
-```
-
-### Update event
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar update \
-  --event-id <id> [--subject ...] [--start ...] [--end ...] [--body ...] \
-  [--location ...] [--attendees ...] [--online]
-```
-
-### Delete event
-```bash
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar update --event-id <id> [--subject ...]
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar delete --event-id <id>
 ```
 
-### List calendars
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar calendars
-```
-
-### Calendar sharing
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-list [--calendar-id <id>]
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-add --email <email> [--role read] [--calendar-id <id>]
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-update --permission-id <id> --role <role> [--calendar-id <id>]
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-remove --permission-id <id> [--calendar-id <id>]
-```
+See `references/calendar.md` for full options including `--timezone`, `--location`, `--attendees`, `--online`, and calendar sharing commands.
 
 ---
 
 ## OneDrive
 
-### List files
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive list [--path "/"] [--top 20]
-```
+Quick reference (full details in `references/onedrive.md`):
 
-### Get file/folder info
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive info --item-id <id>
-```
-
-### Download file
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive download --item-id <id> [--output /path/to/save]
-```
-
-### Upload file
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive upload --local-file /path/to/file --remote-path "/folder/filename.ext"
-```
-
-### Create folder
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive mkdir --name "New Folder" [--parent-id <id>]
-```
-
-### Delete file/folder
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive delete --item-id <id>
-```
-
-### Search files
-```bash
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive list [--path "/"]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive download --item-id <id>
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive upload --local-file /path/file --remote-path "/folder/file"
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive search --query "keyword"
 ```
+
+See `references/onedrive.md` for full options including `info`, `mkdir`, `delete`.
 
 ---
 
 ## Outlook Mail
 
-### List emails
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail list [--top 10] [--folder inbox]
-```
+Quick reference (full details in `references/mail.md`):
 
-### Get email details
 ```bash
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail list [--top 10]
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail get --message-id <id>
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail send --to "a@b.com" --subject "Subj" --body "Body"
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail reply --message-id <id> --body "Reply"
 ```
 
-### Send email
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail send \
-  --to "recipient@example.com" --subject "Subject" --body "Message body" \
-  [--cc a@x.com] [--bcc b@x.com]
-```
-
-### Reply to email
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail reply \
-  --message-id <id> --body "Reply text"
-```
-
-### Delete email
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail delete --message-id <id>
-```
-
-### List mail folders
-```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail folders
-```
+See `references/mail.md` for full options including `delete`, `folders`.
 
 ---
 
 ## Config & Status
 
-### Check login status
 ```bash
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py status
-```
-
-### Show current config
-```bash
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py show-config
 ```
 
