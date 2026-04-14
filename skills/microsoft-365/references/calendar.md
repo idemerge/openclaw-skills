@@ -1,10 +1,10 @@
 # Calendar — Full Command Reference
 
-Script: `~/.openclaw/skills/microsoft-365/scripts/ms_graph.py`
+Script: `$MS_GRAPH` (set by the agent — see SKILL.md for path resolution)
 
 ## Create event
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar create \
+python3 $MS_GRAPH calendar create \
   --subject "Title" \
   --start "2026-03-30T10:00:00" \
   --end "2026-03-30T11:00:00" \
@@ -17,17 +17,17 @@ python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar create \
 
 ## List events
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar list [--days 7] [--top 50]
+python3 $MS_GRAPH calendar list [--days 7] [--top 50]
 ```
 
 ## Get event details
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar get --event-id <id>
+python3 $MS_GRAPH calendar get --event-id <id>
 ```
 
 ## Update event
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar update \
+python3 $MS_GRAPH calendar update \
   --event-id <id> \
   [--subject ...] [--start ...] [--end ...] [--timezone ...] \
   [--body ...] [--location ...] [--attendees ...] [--online]
@@ -35,31 +35,31 @@ python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar update \
 
 ## Delete event
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar delete --event-id <id>
+python3 $MS_GRAPH calendar delete --event-id <id>
 ```
 
 ## List calendars
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar calendars
+python3 $MS_GRAPH calendar calendars
 ```
 
 ## Calendar sharing
 
 ```bash
 # List sharing permissions
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-list [--calendar-id <id>]
+python3 $MS_GRAPH calendar share-list [--calendar-id <id>]
 
 # Add sharing permission
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-add \
+python3 $MS_GRAPH calendar share-add \
   --email <email> [--role read] [--calendar-id <id>]
 # Roles: freeBusyRead | limitedRead | read | write | delegateWithoutPrivateEventAccess | delegateWithPrivateEventAccess
 
 # Update sharing permission
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-update \
+python3 $MS_GRAPH calendar share-update \
   --permission-id <id> --role <role> [--calendar-id <id>]
 
 # Remove sharing permission
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-remove \
+python3 $MS_GRAPH calendar share-remove \
   --permission-id <id> [--calendar-id <id>]
 ```
 

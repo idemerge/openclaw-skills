@@ -1,20 +1,20 @@
 # Mail — Full Command Reference
 
-Script: `~/.openclaw/skills/microsoft-365/scripts/ms_graph.py`
+Script: `$MS_GRAPH` (set by the agent — see SKILL.md for path resolution)
 
 ## List emails
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail list [--top 10] [--folder inbox]
+python3 $MS_GRAPH mail list [--top 10] [--folder inbox]
 ```
 
 ## Get email details
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail get --message-id <id>
+python3 $MS_GRAPH mail get --message-id <id>
 ```
 
 ## Send email
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail send \
+python3 $MS_GRAPH mail send \
   --to "recipient@example.com" \
   --subject "Subject" \
   --body "Message body" \
@@ -23,19 +23,19 @@ python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail send \
 
 ## Reply to email
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail reply \
+python3 $MS_GRAPH mail reply \
   --message-id <id> \
   --body "Reply text"
 ```
 
 ## Delete email
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail delete --message-id <id>
+python3 $MS_GRAPH mail delete --message-id <id>
 ```
 
 ## List mail folders
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail folders
+python3 $MS_GRAPH mail folders
 ```
 
 ## Notes

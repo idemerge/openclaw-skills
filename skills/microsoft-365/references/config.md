@@ -20,7 +20,7 @@ run it in background, read the device code file, and show the code to the user i
 
 **1. Start login in background:**
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py login &
+python3 $MS_GRAPH login &
 ```
 
 **2. Wait for device code file (up to 10s):**
@@ -43,7 +43,7 @@ wait
 
 **5. Verify:**
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py status
+python3 $MS_GRAPH status
 ```
 
 Steps for the user:
@@ -68,7 +68,7 @@ Token is cached locally and auto-refreshed. Typically valid for 90 days without 
 ## Check Status
 
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py status
+python3 $MS_GRAPH status
 ```
 
 Output:
@@ -80,7 +80,7 @@ Output:
 ## Logout
 
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py logout
+python3 $MS_GRAPH logout
 ```
 
 Deletes the local token cache file. Does not revoke tokens server-side.
@@ -128,7 +128,7 @@ EOF
 ## Show Config
 
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py show-config
+python3 $MS_GRAPH show-config
 ```
 
 Displays current timezone setting and login status.
