@@ -229,7 +229,11 @@ def cmd_login(args):
         return
 
     DEVICE_CODE_PATH.unlink(missing_ok=True)
-    print("[ERROR] Login timed out (3 minutes). Please run login again when ready.", file=sys.stderr)
+    print("[ERROR] Login timed out (3 minutes). Possible reasons:", file=sys.stderr)
+    print("  - You did not complete the browser login in time", file=sys.stderr)
+    print("  - Your organization requires admin approval for this app", file=sys.stderr)
+    print("    (if you saw 'Need admin approval' in the browser)", file=sys.stderr)
+    print("Please run login again to retry.", file=sys.stderr)
     sys.exit(1)
 
 
