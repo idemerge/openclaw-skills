@@ -1,44 +1,44 @@
 # OneDrive — Full Command Reference
 
-Script: `scripts/ms_graph.py` relative to the skill directory
+Script: `~/.openclaw/skills/microsoft-365/scripts/ms_graph.py`
 
 ## List files
 ```bash
-python3 $SKILL_DIR/scripts/ms_graph.py onedrive list [--path "/"] [--top 20]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive list [--path "/"] [--top 20]
 ```
 
 ## Get file/folder info
 ```bash
-python3 $SKILL_DIR/scripts/ms_graph.py onedrive info --item-id <id>
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive info --item-id <id>
 ```
 
 ## Download file
 ```bash
-python3 $SKILL_DIR/scripts/ms_graph.py onedrive download \
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive download \
   --item-id <id> [--output /path/to/save]
 ```
 
 ## Upload file
 ```bash
-python3 $SKILL_DIR/scripts/ms_graph.py onedrive upload \
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive upload \
   --local-file /path/to/file \
   --remote-path "/folder/filename.ext"
 ```
 
 ## Create folder
 ```bash
-python3 $SKILL_DIR/scripts/ms_graph.py onedrive mkdir \
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive mkdir \
   --name "New Folder" [--parent-id <id>]
 ```
 
 ## Delete file/folder
 ```bash
-python3 $SKILL_DIR/scripts/ms_graph.py onedrive delete --item-id <id>
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive delete --item-id <id>
 ```
 
 ## Search files
 ```bash
-python3 $SKILL_DIR/scripts/ms_graph.py onedrive search --query "keyword"
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive search --query "keyword"
 ```
 
 ## Notes
