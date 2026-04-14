@@ -85,7 +85,7 @@ See `references/config.md`.
 
 ## Tool Script
 
-`scripts/ms_graph.py` — Requires `msal`, auto-installed into a `.venv/` inside the skill directory on first run. No root or system pip required. Token cache at `~/.openclaw/ms365_token_cache.json`.
+`scripts/ms_graph.py` — Pure Python stdlib, zero external dependencies. Token cache at `~/.openclaw/ms365_token_cache.json`.
 
 ---
 

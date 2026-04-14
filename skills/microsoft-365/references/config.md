@@ -163,7 +163,6 @@ Use this only when the user wants a complete reset.
 | 403 Forbidden on API calls | The Microsoft account may lack a license for that service (e.g. no Exchange/OneDrive plan) |
 | `interaction_required` error | Conditional Access policy (MFA) requires re-login. Run `ms_graph.py login` |
 | Consent screen blocked by admin | Enterprise tenant admin has disabled user consent. Ask IT admin to grant consent for the app |
-| `[ERROR] Missing dependency: msal` or venv broken | Delete the venv and re-run: `rm -rf ~/.openclaw/skills/microsoft-365/.venv` then run any command to auto-recreate |
 
 ### Enterprise tenant: admin consent required
 

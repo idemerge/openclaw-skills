@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ms_graph.py - Microsoft 365 Management Tool (Calendar + OneDrive + Mail)
-Uses MSAL Device Code Flow — no Azure app registration required.
+Uses Device Code Flow with pure Python stdlib — no external dependencies required.
 
 Usage:
   ms_graph.py login          # Sign in via browser device code
@@ -43,21 +43,11 @@ import argparse
 import json
 import os
 import re
-import subprocess
 import sys
 import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
-
-# ── Venv auto-setup ───────────────────────────────────────────────────────────
-# Re-exec under the skill's venv Python if available (shebang can't use ~)
-_SKILL_DIR = Path(__file__).resolve().parent.parent
-_VENV_DIR = _SKILL_DIR / ".venv"
-_VENV_PYTHON = _VENV_DIR / "bin" / "python3"
-
-if _VENV_PYTHON.exists() and sys.executable != str(_VENV_PYTHON):
-    os.execv(str(_VENV_PYTHON), [str(_VENV_PYTHON)] + sys.argv)
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -80,87 +70,77 @@ DEVICE_CODE_PATH  = Path.home() / ".openclaw" / "ms365_device_code.json"
 CONFIG_FILE      = os.path.expanduser("~/.openclaw/workspace/.credentials/ms-graph-config.json")
 
 
-# ── MSAL helpers ───────────────────────────────────────────────────────────────
+# ── OAuth helpers (pure stdlib) ───────────────────────────────────────────────
 
-def _ensure_msal():
+TOKEN_ENDPOINT = f"{AUTHORITY}/oauth2/v2.0/token"
+DEVICE_CODE_ENDPOINT = f"{AUTHORITY}/oauth2/v2.0/devicecode"
+SCOPE_STRING = " ".join(SCOPES) + " offline_access"
+
+
+def _oauth_post(url: str, params: dict) -> dict:
+    """POST form-encoded data, return JSON response (or error JSON on HTTP 4xx)."""
+    data = urllib.parse.urlencode(params).encode()
+    req = urllib.request.Request(url, data=data, method="POST")
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
     try:
-        import msal  # noqa
-    except ImportError:
-        if sys.prefix == sys.base_prefix:
-            # Not in a venv — try to create one, install msal, and re-exec
-            try:
-                print("[INFO] Creating virtual environment...", file=sys.stderr)
-                subprocess.check_call([sys.executable, "-m", "venv", str(_VENV_DIR)],
-                                      stderr=subprocess.PIPE)
-                print("[INFO] Installing msal...", file=sys.stderr)
-                subprocess.check_call([str(_VENV_PYTHON), "-m", "pip", "install", "msal", "-q"])
-                os.execv(str(_VENV_PYTHON), [str(_VENV_PYTHON)] + sys.argv)
-            except subprocess.CalledProcessError:
-                # venv not available (missing python3-venv) — fall back to direct pip install
-                _VENV_DIR.exists() and subprocess.call(["rm", "-rf", str(_VENV_DIR)])
-                _pip_install_msal()
-        else:
-            # Already in venv but msal missing — install directly
-            print("[INFO] Installing msal...", file=sys.stderr)
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "msal", "-q"])
-            import importlib
-            importlib.invalidate_caches()
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return json.loads(e.read())
 
 
-def _pip_install_msal():
-    """Fallback: install msal directly into current Python (when venv is unavailable)."""
-    print("[INFO] Installing msal (venv unavailable, using pip)...", file=sys.stderr)
-    cmd = [sys.executable, "-m", "pip", "install", "msal", "-q"]
+def _load_cache() -> dict | None:
+    """Load token cache from disk, return dict or None."""
+    if not TOKEN_CACHE_PATH.exists():
+        return None
     try:
-        subprocess.check_call(cmd)
-    except subprocess.CalledProcessError:
-        try:
-            subprocess.check_call(cmd + ["--break-system-packages"])
-        except subprocess.CalledProcessError:
-            print("\n[ERROR] Cannot install msal: neither python3-venv nor pip is available.", file=sys.stderr)
-            print("Please install one of the following and try again:", file=sys.stderr)
-            print("  Option 1 (recommended): sudo apt install python3-venv", file=sys.stderr)
-            print("  Option 2: sudo apt install python3-pip", file=sys.stderr)
-            sys.exit(1)
-    import importlib
-    importlib.invalidate_caches()
+        data = json.loads(TOKEN_CACHE_PATH.read_text())
+        if "refresh_token" in data:
+            return data
+    except Exception:
+        pass
+    TOKEN_CACHE_PATH.unlink(missing_ok=True)
+    return None
 
 
-def _get_app():
-    import msal
-    cache = msal.SerializableTokenCache()
-    if TOKEN_CACHE_PATH.exists():
-        try:
-            cache.deserialize(TOKEN_CACHE_PATH.read_text())
-        except Exception:
-            TOKEN_CACHE_PATH.unlink(missing_ok=True)
-    app = msal.PublicClientApplication(
-        CLIENT_ID,
-        authority=AUTHORITY,
-        token_cache=cache,
-    )
-    return app, cache
-
-
-def _save_cache(cache):
+def _save_cache(data: dict):
+    """Write token cache to disk with restricted permissions."""
     TOKEN_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    TOKEN_CACHE_PATH.write_text(cache.serialize())
+    TOKEN_CACHE_PATH.write_text(json.dumps(data, indent=2))
     if os.name != "nt":
         TOKEN_CACHE_PATH.chmod(0o600)
 
 
+def _refresh_token(cache: dict) -> dict | None:
+    """Use refresh_token to get a new access_token. Returns updated cache or None."""
+    result = _oauth_post(TOKEN_ENDPOINT, {
+        "client_id": CLIENT_ID,
+        "grant_type": "refresh_token",
+        "refresh_token": cache["refresh_token"],
+        "scope": SCOPE_STRING,
+    })
+    if "access_token" not in result:
+        return None
+    cache["access_token"] = result["access_token"]
+    cache["refresh_token"] = result.get("refresh_token", cache["refresh_token"])
+    cache["expires_at"] = int(time.time()) + result.get("expires_in", 3600)
+    _save_cache(cache)
+    return cache
+
+
 def get_access_token(force_refresh: bool = False) -> str:
     """Return a valid access token, auto-refreshing from cache. Exits if not logged in."""
-    _ensure_msal()
-    app, cache = _get_app()
-    accounts = app.get_accounts()
-    if not accounts:
+    cache = _load_cache()
+    if not cache:
         print("[SETUP NEEDED] Not logged in. Run: ms_graph.py login", file=sys.stderr)
         sys.exit(1)
-    result = app.acquire_token_silent(SCOPES, account=accounts[0], force_refresh=force_refresh)
-    if result and "access_token" in result:
-        _save_cache(cache)
-        return result["access_token"]
+    # Return cached token if still valid and no forced refresh
+    if not force_refresh and cache.get("expires_at", 0) > time.time() + 60:
+        return cache["access_token"]
+    # Refresh
+    updated = _refresh_token(cache)
+    if updated:
+        return updated["access_token"]
     print("[ERROR] Token refresh failed. Run: ms_graph.py login", file=sys.stderr)
     sys.exit(1)
 
@@ -170,12 +150,14 @@ def get_access_token(force_refresh: bool = False) -> str:
 def cmd_login(args):
     # Clean up stale device code file from a previous interrupted login
     DEVICE_CODE_PATH.unlink(missing_ok=True)
-    _ensure_msal()
-    app, cache = _get_app()
-    flow = app.initiate_device_flow(scopes=SCOPES)
+
+    # Step 1: Request device code
+    flow = _oauth_post(DEVICE_CODE_ENDPOINT, {
+        "client_id": CLIENT_ID,
+        "scope": SCOPE_STRING,
+    })
     if "user_code" not in flow:
-        print(f"[ERROR] Could not start device flow: {flow.get('error_description')}", file=sys.stderr)
-        DEVICE_CODE_PATH.unlink(missing_ok=True)
+        print(f"[ERROR] Could not start device flow: {flow.get('error_description', flow.get('error'))}", file=sys.stderr)
         sys.exit(1)
 
     # Write device code info to file so the agent can read and display it
@@ -199,21 +181,52 @@ def cmd_login(args):
     print("  only required for this login session.")
     print("  Waiting for login...\n")
 
-    result = app.acquire_token_by_device_flow(flow)
-    DEVICE_CODE_PATH.unlink(missing_ok=True)
-    if "access_token" in result:
-        _save_cache(cache)
+    # Step 2: Poll for token
+    interval = flow.get("interval", 5)
+    expires_at = time.time() + flow.get("expires_in", 900)
+    device_code = flow["device_code"]
+
+    while time.time() < expires_at:
+        time.sleep(interval)
+        result = _oauth_post(TOKEN_ENDPOINT, {
+            "client_id": CLIENT_ID,
+            "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+            "device_code": device_code,
+        })
+        error = result.get("error")
+        if error == "authorization_pending":
+            continue
+        if error == "slow_down":
+            interval += 5
+            continue
+        if error:
+            DEVICE_CODE_PATH.unlink(missing_ok=True)
+            print(f"[ERROR] Login failed: {result.get('error_description', error)}", file=sys.stderr)
+            sys.exit(1)
+        # Success
+        DEVICE_CODE_PATH.unlink(missing_ok=True)
+        cache = {
+            "access_token": result["access_token"],
+            "refresh_token": result.get("refresh_token", ""),
+            "expires_at": int(time.time()) + result.get("expires_in", 3600),
+        }
         try:
             user = _get_user_profile(result["access_token"])
-            name  = user.get("displayName", "")
-            email = user.get("mail") or user.get("userPrincipalName", "")
-            print(f"[OK] Logged in: {name} ({email})")
+            cache["account"] = {
+                "name": user.get("displayName", ""),
+                "username": user.get("mail") or user.get("userPrincipalName", ""),
+            }
+            print(f"[OK] Logged in: {cache['account']['name']} ({cache['account']['username']})")
         except Exception:
+            cache["account"] = {"name": "", "username": ""}
             print("[OK] Login successful.")
+        _save_cache(cache)
         print("[INFO] Token is cached locally and auto-refreshes for ~90 days. No need to run login again unless you see NOT_LOGGED_IN.")
-    else:
-        print(f"[ERROR] Login failed: {result.get('error_description', result.get('error'))}", file=sys.stderr)
-        sys.exit(1)
+        return
+
+    DEVICE_CODE_PATH.unlink(missing_ok=True)
+    print("[ERROR] Login timed out. Device code expired. Please try again.", file=sys.stderr)
+    sys.exit(1)
 
 
 def cmd_logout(args):
@@ -225,21 +238,19 @@ def cmd_logout(args):
 
 
 def cmd_status(args):
-    _ensure_msal()
-    app, cache = _get_app()
-    accounts = app.get_accounts()
-    if not accounts:
+    cache = _load_cache()
+    if not cache:
         print("NOT_LOGGED_IN")
         return
-    result = app.acquire_token_silent(SCOPES, account=accounts[0])
-    if result and "access_token" in result:
-        _save_cache(cache)
-        try:
-            user = _get_user_profile(result["access_token"])
-            name  = user.get("displayName", "")
-            email = user.get("mail") or user.get("userPrincipalName", "")
+    # Try refreshing to verify token is still valid
+    updated = _refresh_token(cache)
+    if updated:
+        account = updated.get("account", {})
+        name = account.get("name", "")
+        email = account.get("username", "")
+        if name or email:
             print(f"LOGGED_IN | {name} | {email}")
-        except Exception:
+        else:
             print("LOGGED_IN")
     else:
         print("NOT_LOGGED_IN")
@@ -752,11 +763,9 @@ def cmd_show_config(args):
     print(f"Timezone   : {tz}")
     print(f"Config     : {CONFIG_FILE}")
     print(f"Token cache: {TOKEN_CACHE_PATH}")
-    _ensure_msal()
-    app, _ = _get_app()
-    accounts = app.get_accounts()
-    if accounts:
-        username = accounts[0].get("username", "unknown")
+    cache = _load_cache()
+    if cache:
+        username = cache.get("account", {}).get("username", "unknown")
         print(f"Login      : LOGGED_IN ({username})")
     else:
         print("Login      : NOT_LOGGED_IN — run: ms_graph.py login")
