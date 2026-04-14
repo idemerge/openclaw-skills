@@ -17,7 +17,7 @@ python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar create \
 
 ## List events
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar list [--days 7]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar list [--days 7] [--top 50]
 ```
 
 ## Get event details

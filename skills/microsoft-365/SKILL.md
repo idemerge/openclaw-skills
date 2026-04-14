@@ -113,7 +113,7 @@ Quick reference (full details in `references/calendar.md`):
 ```bash
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar create \
   --subject "Title" --start "2026-03-30T10:00:00" --end "2026-03-30T11:00:00"
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar list [--days 7]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar list [--days 7] [--top 50]
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar update --event-id <id> [--subject ...]
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar delete --event-id <id>
 ```

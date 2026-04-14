@@ -10,7 +10,7 @@ Usage:
   ms_graph.py show-config    # Show timezone and login status
 
   ms_graph.py calendar create   --subject "Meeting" --start "2026-03-30T10:00:00" --end "2026-03-30T11:00:00" [options]
-  ms_graph.py calendar list     [--days 7]
+  ms_graph.py calendar list     [--days 7] [--top 50]
   ms_graph.py calendar get      --event-id <id>
   ms_graph.py calendar update   --event-id <id> [--subject ...] [--start ...] [--end ...] [options]
   ms_graph.py calendar delete   --event-id <id>
@@ -240,7 +240,7 @@ def api_request(method: str, path: str, body: dict = None, prefer: str = None) -
         req.add_header("Content-Type", "application/json")
         if prefer:
             req.add_header("Prefer", prefer)
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=30) as resp:
             content = resp.read()
             return json.loads(content) if content else {}
 
@@ -523,7 +523,7 @@ def cmd_od_download(args):
     print(f"[INFO] Downloading '{filename}'...")
     # @microsoft.graph.downloadUrl is pre-signed — no Authorization header needed
     req = urllib.request.Request(dl_url)
-    with urllib.request.urlopen(req) as resp:
+    with urllib.request.urlopen(req, timeout=30) as resp:
         with open(output, "wb") as f:
             while True:
                 chunk = resp.read(8192)
@@ -535,7 +535,6 @@ def cmd_od_download(args):
 
 def cmd_od_upload(args):
     local_path  = args.local_file
-    remote_path = args.remote_path.strip("/")
     if not os.path.exists(local_path):
         print(f"[ERROR] Local file not found: {local_path}", file=sys.stderr)
         sys.exit(1)
@@ -545,8 +544,11 @@ def cmd_od_upload(args):
         print(f"[ERROR] File too large ({size_mb:.1f}MB). Upload supports files up to 4MB. Large file upload is not yet supported.", file=sys.stderr)
         sys.exit(1)
     filename = os.path.basename(local_path)
-    if remote_path.endswith("/"):
-        remote_path = remote_path + filename
+    # If user gave a directory path (ending with /), append the local filename
+    if args.remote_path.endswith("/"):
+        remote_path = args.remote_path.strip("/") + "/" + filename
+    else:
+        remote_path = args.remote_path.strip("/")
     api_path = f"/drive/root:/{urllib.parse.quote(remote_path)}:/content"
     with open(local_path, "rb") as f:
         file_data = f.read()
@@ -556,7 +558,7 @@ def cmd_od_upload(args):
         req = urllib.request.Request(url, data=file_data, method="PUT")
         req.add_header("Authorization", f"Bearer {token}")
         req.add_header("Content-Type", "application/octet-stream")
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=30) as resp:
             return json.loads(resp.read())
 
     try:
@@ -698,14 +700,14 @@ def cmd_mail_folders(args):
 # ── Config commands ────────────────────────────────────────────────────────────
 
 def cmd_show_config(args):
-    print(f"Timezone   : {DEFAULT_TIMEZONE}")
-    print(f"Config     : {CONFIG_FILE}")
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE) as f:
             cfg = json.load(f)
-        print(f"  timezone : {cfg.get('timezone', '(not set)')}")
+        tz = cfg.get("timezone", "(not set)")
     else:
-        print("  (config file not found — using default Asia/Dubai)")
+        tz = "Asia/Dubai (default — config file not found)"
+    print(f"Timezone   : {tz}")
+    print(f"Config     : {CONFIG_FILE}")
     print(f"Token cache: {TOKEN_CACHE_PATH}")
     _ensure_msal()
     app, _ = _get_app()
