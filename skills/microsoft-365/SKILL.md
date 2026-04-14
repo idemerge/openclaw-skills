@@ -18,11 +18,7 @@ Unified access to Microsoft 365 services via Microsoft Graph API — Calendar, O
 
 Uses **Device Code Flow** with a public Client ID — no Azure app registration or client secret required.
 
-> **Note on paths**: Before running any command, set the script path variable once:
-> ```bash
-> MS_GRAPH=$(find ~/.openclaw/skills -name ms_graph.py -path "*/microsoft*/scripts/*" 2>/dev/null | head -1)
-> ```
-> All commands below use `$MS_GRAPH`. If the variable is empty, the skill is not installed.
+> **Script path**: `scripts/ms_graph.py` relative to this skill directory. In commands below, replace `$SKILL_DIR` with the actual skill installation path (e.g. `~/.openclaw/skills/microsoft-365`).
 
 ## Setup
 
@@ -33,7 +29,7 @@ Follow these steps exactly so the user sees the device code in chat:
 
 **Step 1a — Start login in background:**
 ```bash
-python3 $MS_GRAPH login &
+python3 $SKILL_DIR/scripts/ms_graph.py login &
 ```
 
 **Step 1b — Wait for device code file (retry up to 10s):**
@@ -77,7 +73,7 @@ See `references/config.md` → **Troubleshooting** for details.
 
 **Step 1e — Verify:**
 ```bash
-python3 $MS_GRAPH status
+python3 $SKILL_DIR/scripts/ms_graph.py status
 ```
 
 The browser shows a permissions consent screen for **Microsoft Graph Command Line Tools** (a Microsoft first-party app). Token is cached at `~/.openclaw/ms365_token_cache.json` and auto-refreshed. Login is typically valid for 90 days.
@@ -94,7 +90,7 @@ See `references/config.md` → **Timezone Setup** for the full procedure.
 ### Step 3: Verify
 
 ```bash
-python3 $MS_GRAPH calendar list
+python3 $SKILL_DIR/scripts/ms_graph.py calendar list
 ```
 
 ### Update / Delete / Logout
@@ -134,11 +130,11 @@ See `references/config.md`.
 Quick reference (full details in `references/calendar.md`):
 
 ```bash
-python3 $MS_GRAPH calendar create \
+python3 $SKILL_DIR/scripts/ms_graph.py calendar create \
   --subject "Title" --start "2026-03-30T10:00:00" --end "2026-03-30T11:00:00"
-python3 $MS_GRAPH calendar list [--days 7] [--top 50]
-python3 $MS_GRAPH calendar update --event-id <id> [--subject ...]
-python3 $MS_GRAPH calendar delete --event-id <id>
+python3 $SKILL_DIR/scripts/ms_graph.py calendar list [--days 7] [--top 50]
+python3 $SKILL_DIR/scripts/ms_graph.py calendar update --event-id <id> [--subject ...]
+python3 $SKILL_DIR/scripts/ms_graph.py calendar delete --event-id <id>
 ```
 
 See `references/calendar.md` for full options including `--timezone`, `--location`, `--attendees`, `--online`, and calendar sharing commands.
@@ -150,10 +146,10 @@ See `references/calendar.md` for full options including `--timezone`, `--locatio
 Quick reference (full details in `references/onedrive.md`):
 
 ```bash
-python3 $MS_GRAPH onedrive list [--path "/"]
-python3 $MS_GRAPH onedrive download --item-id <id>
-python3 $MS_GRAPH onedrive upload --local-file /path/file --remote-path "/folder/file"
-python3 $MS_GRAPH onedrive search --query "keyword"
+python3 $SKILL_DIR/scripts/ms_graph.py onedrive list [--path "/"]
+python3 $SKILL_DIR/scripts/ms_graph.py onedrive download --item-id <id>
+python3 $SKILL_DIR/scripts/ms_graph.py onedrive upload --local-file /path/file --remote-path "/folder/file"
+python3 $SKILL_DIR/scripts/ms_graph.py onedrive search --query "keyword"
 ```
 
 See `references/onedrive.md` for full options including `info`, `mkdir`, `delete`.
@@ -165,10 +161,10 @@ See `references/onedrive.md` for full options including `info`, `mkdir`, `delete
 Quick reference (full details in `references/mail.md`):
 
 ```bash
-python3 $MS_GRAPH mail list [--top 10]
-python3 $MS_GRAPH mail get --message-id <id>
-python3 $MS_GRAPH mail send --to "a@b.com" --subject "Subj" --body "Body"
-python3 $MS_GRAPH mail reply --message-id <id> --body "Reply"
+python3 $SKILL_DIR/scripts/ms_graph.py mail list [--top 10]
+python3 $SKILL_DIR/scripts/ms_graph.py mail get --message-id <id>
+python3 $SKILL_DIR/scripts/ms_graph.py mail send --to "a@b.com" --subject "Subj" --body "Body"
+python3 $SKILL_DIR/scripts/ms_graph.py mail reply --message-id <id> --body "Reply"
 ```
 
 See `references/mail.md` for full options including `delete`, `folders`.
@@ -178,8 +174,8 @@ See `references/mail.md` for full options including `delete`, `folders`.
 ## Config & Status
 
 ```bash
-python3 $MS_GRAPH status
-python3 $MS_GRAPH show-config
+python3 $SKILL_DIR/scripts/ms_graph.py status
+python3 $SKILL_DIR/scripts/ms_graph.py show-config
 ```
 
 ---
