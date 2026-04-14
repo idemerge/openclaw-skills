@@ -17,7 +17,8 @@ Manage Google Calendar via Google Calendar API v3.
 
 ### microsoft
 
-Unified Microsoft 365 access via Microsoft Graph API — Calendar, OneDrive, and Outlook Mail in one skill.
+Manage Microsoft 365 via Microsoft Graph API — Calendar, OneDrive, and Outlook Mail.
+Uses client_secret + refresh_token authentication (requires Azure app registration).
 
 - **Calendar**: CRUD + sharing + Teams online meetings
 - **OneDrive**: list, info, download, upload, mkdir, delete, search
@@ -26,6 +27,18 @@ Unified Microsoft 365 access via Microsoft Graph API — Calendar, OneDrive, and
 - Configurable timezone (default: `Asia/Dubai`)
 - Pure Python stdlib — no external dependencies
 
+### microsoft-365
+
+Manage Microsoft 365 via Microsoft Graph API — Calendar, OneDrive, and Outlook Mail.
+Uses **Device Code Flow** with a public Client ID — no Azure app registration or client secret required.
+
+- **Calendar**: CRUD + sharing + Teams online meetings
+- **OneDrive**: list, info, download, upload, mkdir, delete, search
+- **Mail**: list, get, send, reply, delete, folders
+- Device Code Flow login (browser-based, no manual config)
+- Configurable timezone (default: `Asia/Dubai`)
+- Pure Python stdlib — zero external dependencies
+
 ## Installation
 
 ### From ClawHub (recommended)
@@ -33,6 +46,7 @@ Unified Microsoft 365 access via Microsoft Graph API — Calendar, OneDrive, and
 ```bash
 openclaw skills install google
 openclaw skills install microsoft
+openclaw skills install microsoft-365
 ```
 
 ### Manual
@@ -41,6 +55,7 @@ openclaw skills install microsoft
 git clone https://github.com/idemerge/openclaw-skills.git
 cp -r openclaw-skills/skills/google ~/.openclaw/skills/
 cp -r openclaw-skills/skills/microsoft ~/.openclaw/skills/
+cp -r openclaw-skills/skills/microsoft-365 ~/.openclaw/skills/
 ```
 
 ## Skill Structure
