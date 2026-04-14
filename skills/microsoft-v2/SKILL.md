@@ -63,13 +63,28 @@ The browser shows a permissions consent screen for **Microsoft Graph Command Lin
 
 ### Step 2: Set Timezone
 
-After login, ask the user for their timezone. Default: `Asia/Dubai`.
+After login, **ask the user** which timezone they want to use. Do NOT set a default silently.
+
+Suggest common options and let the user choose:
+
+| Timezone | Region |
+|----------|--------|
+| `Asia/Shanghai` | China, Hong Kong, Taiwan |
+| `Asia/Dubai` | UAE, Gulf |
+| `Asia/Tokyo` | Japan |
+| `Asia/Singapore` | Singapore, Malaysia |
+| `Europe/London` | UK |
+| `America/New_York` | US East |
+| `America/Los_Angeles` | US West |
+| `UTC` | UTC |
+
+Once the user confirms their timezone, write the config:
 
 ```bash
 mkdir -p ~/.openclaw/workspace/.credentials
 cat > ~/.openclaw/workspace/.credentials/ms-graph-config.json << 'EOF'
 {
-  "timezone": "<timezone>"
+  "timezone": "<user_confirmed_timezone>"
 }
 EOF
 ```

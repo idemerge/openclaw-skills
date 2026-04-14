@@ -85,20 +85,31 @@ Deletes the local token cache file. Does not revoke tokens server-side.
 
 ## Timezone Setup (Required)
 
-After login, set the user's timezone. Default is `Asia/Dubai`.
+After login, **ask the user** which timezone they want. Do NOT auto-set a default.
 
-Collect the timezone value in chat, then write the config file:
+Suggest options in chat:
+
+| Timezone | Region |
+|----------|--------|
+| `Asia/Shanghai` | China, Hong Kong, Taiwan |
+| `Asia/Dubai` | UAE, Gulf |
+| `Asia/Tokyo` | Japan |
+| `Asia/Singapore` | Singapore, Malaysia |
+| `Europe/London` | UK |
+| `America/New_York` | US East |
+| `America/Los_Angeles` | US West |
+| `UTC` | UTC |
+
+Once the user confirms, write the config file:
 
 ```bash
 mkdir -p ~/.openclaw/workspace/.credentials
 cat > ~/.openclaw/workspace/.credentials/ms-graph-config.json << 'EOF'
 {
-  "timezone": "<timezone>"
+  "timezone": "<user_confirmed_timezone>"
 }
 EOF
 ```
-
-Common values: `Asia/Dubai`, `Asia/Shanghai`, `America/New_York`, `Europe/London`, `UTC`.
 
 To update timezone later, overwrite the same file with the new value.
 
