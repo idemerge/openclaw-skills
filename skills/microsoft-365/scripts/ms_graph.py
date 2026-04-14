@@ -87,18 +87,37 @@ def _ensure_msal():
         import msal  # noqa
     except ImportError:
         if sys.prefix == sys.base_prefix:
-            # Not in a venv — create one, install msal, and re-exec
-            print("[INFO] Creating virtual environment...", file=sys.stderr)
-            subprocess.check_call([sys.executable, "-m", "venv", str(_VENV_DIR)])
-            print("[INFO] Installing msal...", file=sys.stderr)
-            subprocess.check_call([str(_VENV_PYTHON), "-m", "pip", "install", "msal", "-q"])
-            os.execv(str(_VENV_PYTHON), [str(_VENV_PYTHON)] + sys.argv)
+            # Not in a venv — try to create one, install msal, and re-exec
+            try:
+                print("[INFO] Creating virtual environment...", file=sys.stderr)
+                subprocess.check_call([sys.executable, "-m", "venv", str(_VENV_DIR)],
+                                      stderr=subprocess.PIPE)
+                print("[INFO] Installing msal...", file=sys.stderr)
+                subprocess.check_call([str(_VENV_PYTHON), "-m", "pip", "install", "msal", "-q"])
+                os.execv(str(_VENV_PYTHON), [str(_VENV_PYTHON)] + sys.argv)
+            except subprocess.CalledProcessError:
+                # venv not available (missing python3-venv) — fall back to direct pip install
+                _VENV_DIR.exists() and subprocess.call(["rm", "-rf", str(_VENV_DIR)])
+                _pip_install_msal()
         else:
             # Already in venv but msal missing — install directly
             print("[INFO] Installing msal...", file=sys.stderr)
             subprocess.check_call([sys.executable, "-m", "pip", "install", "msal", "-q"])
             import importlib
             importlib.invalidate_caches()
+
+
+def _pip_install_msal():
+    """Fallback: install msal directly into current Python (when venv is unavailable)."""
+    print("[INFO] Installing msal (venv unavailable, using pip)...", file=sys.stderr)
+    cmd = [sys.executable, "-m", "pip", "install", "msal", "-q"]
+    try:
+        subprocess.check_call(cmd)
+    except subprocess.CalledProcessError:
+        # Retry with --break-system-packages for externally-managed environments
+        subprocess.check_call(cmd + ["--break-system-packages"])
+    import importlib
+    importlib.invalidate_caches()
 
 
 def _get_app():
