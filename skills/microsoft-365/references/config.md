@@ -83,11 +83,19 @@ Deletes the local token cache file. Does not revoke tokens server-side.
 
 ---
 
-## Timezone Setup (Required)
+## Timezone Setup (Required after every login)
 
-After login, **ask the user** which timezone they want. Do NOT auto-set a default.
+After every successful login, **always** check the existing timezone config first:
 
-Suggest options in chat:
+```bash
+cat ~/.openclaw/workspace/.credentials/ms-graph-config.json 2>/dev/null
+```
+
+- **Config missing** → ask the user to choose a timezone. Do NOT set one silently.
+- **Config exists** → show the current value and ask to confirm:
+  > "Your timezone is currently `Asia/Shanghai`. Keep it or change?"
+
+Available timezones to suggest:
 
 | Timezone | Region |
 |----------|--------|
@@ -110,8 +118,6 @@ cat > ~/.openclaw/workspace/.credentials/ms-graph-config.json << 'EOF'
 }
 EOF
 ```
-
-To update timezone later, overwrite the same file with the new value.
 
 ---
 

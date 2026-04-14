@@ -61,11 +61,20 @@ python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py status
 
 The browser shows a permissions consent screen for **Microsoft Graph Command Line Tools** (a Microsoft first-party app). Token is cached at `~/.openclaw/ms365_token_cache.json` and auto-refreshed. Login is typically valid for 90 days.
 
-### Step 2: Set Timezone
+### Step 2: Check Timezone (after every login)
 
-After login, **ask the user** which timezone they want to use. Do NOT set a default silently.
+After every successful login, **always** check the timezone config:
 
-Suggest common options and let the user choose:
+```bash
+cat ~/.openclaw/workspace/.credentials/ms-graph-config.json 2>/dev/null
+```
+
+**If config does not exist** — ask the user to choose a timezone. Do NOT set one silently.
+
+**If config already exists** — show the current value and ask the user to confirm:
+> "Your timezone is currently set to `Asia/Shanghai`. Keep it or change?"
+
+Only proceed if the user confirms. If they want to change, let them pick from:
 
 | Timezone | Region |
 |----------|--------|
@@ -78,7 +87,7 @@ Suggest common options and let the user choose:
 | `America/Los_Angeles` | US West |
 | `UTC` | UTC |
 
-Once the user confirms their timezone, write the config:
+Once confirmed, write the config:
 
 ```bash
 mkdir -p ~/.openclaw/workspace/.credentials
