@@ -55,6 +55,10 @@ Tell the user:
 wait
 ```
 
+If the user does not respond or complete login within a few minutes, do not keep waiting silently.
+Remind the user that the device code expires in 15 minutes and they need to complete the browser login.
+If login times out, tell the user to try again when ready.
+
 **Step 1e — Verify:**
 ```bash
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py status
