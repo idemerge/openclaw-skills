@@ -24,61 +24,39 @@ Uses **Device Code Flow** with a public Client ID — no Azure app registration 
 
 ### Step 1: Login
 
-The login command blocks while waiting for the user to complete browser login.
-Follow these steps exactly so the user sees the device code in chat:
-
-**Step 1a — Start login in background:**
+**Step 1a — Get device code:**
 ```bash
-python3 {baseDir}/scripts/ms_graph.py login &
+python3 {baseDir}/scripts/ms_graph.py device-code
 ```
+Output: JSON with `verification_uri`, `user_code`, `device_code`.
 
-**Step 1b — Wait for device code file (retry up to 10s):**
-```bash
-for i in $(seq 1 10); do
-  [ -f ~/.openclaw/ms365_device_code.json ] && break
-  sleep 1
-done
-cat ~/.openclaw/ms365_device_code.json
-```
+**Step 1b — Show the user in chat:**
 
-**Step 1c — Read the JSON and show the user in chat:**
-```
-verification_uri: https://microsoft.com/devicelogin
-user_code: ABCD-1234
-```
 Tell the user:
 1. Open `verification_uri` in their browser
 2. Enter the code `user_code`
 3. Sign in with their Microsoft account and accept the permissions
-4. Microsoft may ask for a verification code (SMS/email/authenticator) — this is normal and only required for this login session
-5. After approval, the browser may show a "localhost" error page — this is normal and can be safely closed. The login has already succeeded.
-6. **You have about 3 minutes to complete. If you see "Need admin approval" in the browser, let me know — your organization may need IT admin to authorize this app first.**
+4. Microsoft may ask for a verification code (SMS/email/authenticator) — this is normal
+5. After approval, the browser may show a "localhost" error page — this is normal, just close it
+6. **When done, let me know** so I can verify the login
+7. If you see "Need admin approval" in the browser, let me know — your organization may need IT admin to authorize this app first
 
-**Step 1d — Wait for login to complete:**
+**Step 1c — When the user confirms login is done:**
 ```bash
-wait
+python3 {baseDir}/scripts/ms_graph.py login-poll --device-code <device_code from step 1a>
 ```
-
-The login command times out after 3 minutes. If it times out, ask the user what happened:
-- If they simply didn't complete in time → offer to try again
-- If they saw "Need admin approval" in the browser → their organization requires admin consent. Tell them:
-  > Your organization requires admin approval for this app. Please ask your IT admin to visit:
+- `LOGIN_SUCCESS | name | email` → login succeeded, proceed to timezone check
+- `LOGIN_TIMEOUT` → device code expired, offer to start over from step 1a
+- `LOGIN_FAILED: ...` → check the error. If admin consent issue, tell the user:
+  > Your organization requires admin approval. Ask your IT admin to visit:
   > `https://login.microsoftonline.com/<tenant-id>/adminconsent?client_id=14d82eec-204b-4c2f-b7e8-296a70dab67e`
-  > Replace `<tenant-id>` with your organization's tenant ID.
-  > Alternatively, you can use a personal Microsoft account (Outlook.com / Hotmail) which does not require admin approval.
-
-When showing the device code to the user, mention they have about 3 minutes to complete the browser login.
+  > Or use a personal Microsoft account (Outlook.com / Hotmail) instead.
 
 See `references/config.md` → **Troubleshooting** for details.
 
-**Step 1e — Verify:**
-```bash
-python3 {baseDir}/scripts/ms_graph.py status
-```
-
-The browser shows a permissions consent screen for **Microsoft Graph Command Line Tools** (a Microsoft first-party app). Token is cached at `~/.openclaw/ms365_token_cache.json` and auto-refreshed. Login is typically valid for 90 days.
-
 > **After successful login, tell the user:** Token is cached locally and auto-refreshes for ~90 days. You do not need to log in again unless you see `NOT_LOGGED_IN`. Microsoft may require a verification code during login — this is normal and only happens once per login session.
+
+The browser shows a permissions consent screen for **Microsoft Graph Command Line Tools** (a Microsoft first-party app). Token is cached at `~/.openclaw/ms365_token_cache.json`.
 
 ### Step 2: Check Timezone (after every login)
 

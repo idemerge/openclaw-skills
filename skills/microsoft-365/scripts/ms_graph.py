@@ -4,7 +4,9 @@ ms_graph.py - Microsoft 365 Management Tool (Calendar + OneDrive + Mail)
 Uses Device Code Flow with pure Python stdlib — no external dependencies required.
 
 Usage:
-  ms_graph.py login          # Sign in via browser device code
+  ms_graph.py device-code    # Get device code (JSON output, for agent use)
+  ms_graph.py login-poll     # Poll for login completion (for agent use)
+  ms_graph.py login          # Interactive login (for direct terminal use)
   ms_graph.py logout         # Clear token cache
   ms_graph.py status         # Check login status
   ms_graph.py show-config    # Show timezone and login status
@@ -66,7 +68,6 @@ SCOPES = [
 ]
 
 TOKEN_CACHE_PATH  = Path.home() / ".openclaw" / "ms365_token_cache.json"
-DEVICE_CODE_PATH  = Path.home() / ".openclaw" / "ms365_device_code.json"
 CONFIG_FILE      = os.path.expanduser("~/.openclaw/workspace/.credentials/ms-graph-config.json")
 
 
@@ -147,11 +148,8 @@ def get_access_token(force_refresh: bool = False) -> str:
 
 # ── Auth commands ──────────────────────────────────────────────────────────────
 
-def cmd_login(args):
-    # Clean up stale device code file from a previous interrupted login
-    DEVICE_CODE_PATH.unlink(missing_ok=True)
-
-    # Step 1: Request device code
+def cmd_device_code(args):
+    """Request a device code and output JSON. Returns immediately — no polling."""
     flow = _oauth_post(DEVICE_CODE_ENDPOINT, {
         "client_id": CLIENT_ID,
         "scope": SCOPE_STRING,
@@ -159,15 +157,69 @@ def cmd_login(args):
     if "user_code" not in flow:
         print(f"[ERROR] Could not start device flow: {flow.get('error_description', flow.get('error'))}", file=sys.stderr)
         sys.exit(1)
-
-    # Write device code info to file so the agent can read and display it
-    # while this process blocks waiting for browser login.
-    DEVICE_CODE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    DEVICE_CODE_PATH.write_text(json.dumps({
+    print(json.dumps({
         "verification_uri": flow["verification_uri"],
         "user_code": flow["user_code"],
+        "device_code": flow["device_code"],
         "expires_in": flow.get("expires_in", 900),
+        "interval": flow.get("interval", 10),
     }))
+
+
+def cmd_login_poll(args):
+    """Poll for token after user completes browser login. Blocks up to 3 minutes."""
+    interval = args.interval or 10
+    poll_timeout = 180  # 3 minutes
+    expires_at = time.time() + poll_timeout
+
+    while time.time() < expires_at:
+        time.sleep(interval)
+        result = _oauth_post(TOKEN_ENDPOINT, {
+            "client_id": CLIENT_ID,
+            "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+            "device_code": args.device_code,
+        })
+        error = result.get("error")
+        if error == "authorization_pending":
+            continue
+        if error == "slow_down":
+            interval += 5
+            continue
+        if error:
+            print(f"LOGIN_FAILED: {result.get('error_description', error)}")
+            sys.exit(1)
+        # Success — save token cache
+        cache = {
+            "access_token": result["access_token"],
+            "refresh_token": result.get("refresh_token", ""),
+            "expires_at": int(time.time()) + result.get("expires_in", 3600),
+        }
+        try:
+            user = _get_user_profile(result["access_token"])
+            cache["account"] = {
+                "name": user.get("displayName", ""),
+                "username": user.get("mail") or user.get("userPrincipalName", ""),
+            }
+        except Exception:
+            cache["account"] = {"name": "", "username": ""}
+        _save_cache(cache)
+        name = cache["account"].get("name", "")
+        email = cache["account"].get("username", "")
+        print(f"LOGIN_SUCCESS | {name} | {email}")
+        return
+    print("LOGIN_TIMEOUT")
+    sys.exit(1)
+
+
+def cmd_login(args):
+    """Interactive login — get device code, print instructions, poll. For direct terminal use."""
+    flow = _oauth_post(DEVICE_CODE_ENDPOINT, {
+        "client_id": CLIENT_ID,
+        "scope": SCOPE_STRING,
+    })
+    if "user_code" not in flow:
+        print(f"[ERROR] Could not start device flow: {flow.get('error_description', flow.get('error'))}", file=sys.stderr)
+        sys.exit(1)
 
     print("\n" + "=" * 52)
     print("  Microsoft 365 Login")
@@ -183,10 +235,8 @@ def cmd_login(args):
     print("  error page — this is expected. Just close it.")
     print("  Waiting for login...\n")
 
-    # Step 2: Poll for token (3 min timeout — device code valid for 15 min,
-    # but we cut short to avoid blocking the agent too long. User can retry.)
     interval = flow.get("interval", 10)
-    poll_timeout = 180  # 3 minutes
+    poll_timeout = 180
     expires_at = time.time() + poll_timeout
     device_code = flow["device_code"]
 
@@ -204,11 +254,9 @@ def cmd_login(args):
             interval += 5
             continue
         if error:
-            DEVICE_CODE_PATH.unlink(missing_ok=True)
             print(f"[ERROR] Login failed: {result.get('error_description', error)}", file=sys.stderr)
             sys.exit(1)
         # Success
-        DEVICE_CODE_PATH.unlink(missing_ok=True)
         cache = {
             "access_token": result["access_token"],
             "refresh_token": result.get("refresh_token", ""),
@@ -228,12 +276,7 @@ def cmd_login(args):
         print("[INFO] Token is cached locally and auto-refreshes for ~90 days. No need to run login again unless you see NOT_LOGGED_IN.")
         return
 
-    DEVICE_CODE_PATH.unlink(missing_ok=True)
-    print("[ERROR] Login timed out (3 minutes). Possible reasons:", file=sys.stderr)
-    print("  - You did not complete the browser login in time", file=sys.stderr)
-    print("  - Your organization requires admin approval for this app", file=sys.stderr)
-    print("    (if you saw 'Need admin approval' in the browser)", file=sys.stderr)
-    print("Please run login again to retry.", file=sys.stderr)
+    print("[ERROR] Login timed out (3 minutes). Please try again.", file=sys.stderr)
     sys.exit(1)
 
 
@@ -786,9 +829,13 @@ def main():
     sub    = parser.add_subparsers(dest="group")
 
     # ── Auth ──
-    sub.add_parser("login",      help="Sign in via browser device code")
-    sub.add_parser("logout",     help="Clear token cache")
-    sub.add_parser("status",     help="Check login status")
+    sub.add_parser("login",       help="Interactive login (terminal use)")
+    sub.add_parser("device-code", help="Get device code for login (outputs JSON)")
+    p_lp = sub.add_parser("login-poll", help="Poll for login completion after browser auth")
+    p_lp.add_argument("--device-code", required=True)
+    p_lp.add_argument("--interval", type=int, default=10)
+    sub.add_parser("logout",      help="Clear token cache")
+    sub.add_parser("status",      help="Check login status")
     sub.add_parser("show-config", help="Show timezone and login status")
 
     # ── Calendar ──
@@ -911,6 +958,10 @@ def main():
 
     if args.group == "login":
         cmd_login(args)
+    elif args.group == "device-code":
+        cmd_device_code(args)
+    elif args.group == "login-poll":
+        cmd_login_poll(args)
     elif args.group == "logout":
         cmd_logout(args)
     elif args.group == "status":

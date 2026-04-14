@@ -15,53 +15,40 @@ This skill uses **Device Code Flow** — no Azure app registration or client sec
 
 ## Login
 
-The login command blocks waiting for the user's browser action, so the agent must
-run it in background, read the device code file, and show the code to the user in chat.
+Login uses two commands: `device-code` (get code) and `login-poll` (wait for completion). The agent is never blocked.
 
-**1. Start login in background:**
+**1. Get device code:**
 ```bash
-python3 {baseDir}/scripts/ms_graph.py login &
+python3 {baseDir}/scripts/ms_graph.py device-code
 ```
+Output: JSON with `verification_uri`, `user_code`, `device_code`.
 
-**2. Wait for device code file (up to 10s):**
-```bash
-for i in $(seq 1 10); do
-  [ -f ~/.openclaw/ms365_device_code.json ] && break
-  sleep 1
-done
-cat ~/.openclaw/ms365_device_code.json
-```
-
-**3. Show the user in chat** (extract from JSON):
+**2. Show the user:**
 - URL: value of `verification_uri`
 - Code: value of `user_code`
 
-**4. Wait for login to complete:**
-```bash
-wait
-```
-
-**5. Verify:**
-```bash
-python3 {baseDir}/scripts/ms_graph.py status
-```
-
 Steps for the user:
-1. Open the `verification_uri` in any browser
-2. Enter the `user_code`
+1. Open the URL in any browser
+2. Enter the code
 3. Sign in with their Microsoft account (personal Outlook.com or enterprise Microsoft 365)
 4. Accept the permissions on the consent screen
-5. Microsoft may ask for a verification code (SMS/email/authenticator) — this is normal and only required for this login session
-6. After approval, the browser may show a "localhost" error page — this is normal and can be safely closed. The login has already succeeded.
+5. Microsoft may ask for a verification code (SMS/email/authenticator) — this is normal
+6. After approval, the browser may show a "localhost" error page — this is normal, just close it
 
-On success, `status` returns:
+**3. When user confirms login is done:**
+```bash
+python3 {baseDir}/scripts/ms_graph.py login-poll --device-code <device_code>
 ```
-LOGGED_IN | Zhang San | zhangsan@company.com
-```
+Output:
+- `LOGIN_SUCCESS | Name | email@example.com` — proceed to timezone check
+- `LOGIN_TIMEOUT` — device code expired, start over
+- `LOGIN_FAILED: ...` — check error message
 
 Token is cached locally and auto-refreshed. Typically valid for 90 days without re-login.
 
-> **After successful login, tell the user:** Token is cached locally and auto-refreshes for ~90 days. You do not need to log in again unless you see `NOT_LOGGED_IN`. Microsoft may require a verification code during login — this is normal and only happens once per login session.
+> **After successful login, tell the user:** Token is cached locally and auto-refreshes for ~90 days. You do not need to log in again unless you see `NOT_LOGGED_IN`.
+
+For interactive terminal use (not via agent), use `python3 {baseDir}/scripts/ms_graph.py login` which combines both steps.
 
 ---
 
