@@ -154,7 +154,11 @@ def cmd_login(args):
     print("=" * 52)
     print(f"  1. Open browser: {flow['verification_uri']}")
     print(f"  2. Enter code:   {flow['user_code']}")
+    print(f"  3. Sign in and approve permissions")
     print("=" * 52)
+    print("  Note: Microsoft may ask for a verification code")
+    print("  (SMS/authenticator). This is normal and only")
+    print("  required for this login session.")
     print("  Waiting for login...\n")
 
     result = app.acquire_token_by_device_flow(flow)
@@ -168,6 +172,7 @@ def cmd_login(args):
             print(f"[OK] Logged in: {name} ({email})")
         except Exception:
             print("[OK] Login successful.")
+        print("[INFO] Token is cached locally and auto-refreshes for ~90 days. No need to run login again unless you see NOT_LOGGED_IN.")
     else:
         print(f"[ERROR] Login failed: {result.get('error_description', result.get('error'))}", file=sys.stderr)
         sys.exit(1)

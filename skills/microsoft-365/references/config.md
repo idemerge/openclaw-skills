@@ -51,6 +51,7 @@ Steps for the user:
 2. Enter the `user_code`
 3. Sign in with their Microsoft account (personal Outlook.com or enterprise Microsoft 365)
 4. Accept the permissions on the consent screen
+5. Microsoft may ask for a verification code (SMS/authenticator) — this is normal and only required for this login session
 
 On success, `status` returns:
 ```
@@ -58,6 +59,8 @@ LOGGED_IN | Zhang San | zhangsan@company.com
 ```
 
 Token is cached locally and auto-refreshed. Typically valid for 90 days without re-login.
+
+> **After successful login, tell the user:** Token is cached locally and auto-refreshes for ~90 days. You do not need to log in again unless you see `NOT_LOGGED_IN`. Microsoft may require a verification code during login — this is normal and only happens once per login session.
 
 ---
 

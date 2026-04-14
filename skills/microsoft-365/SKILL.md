@@ -48,6 +48,7 @@ Tell the user:
 1. Open `verification_uri` in their browser
 2. Enter the code `user_code`
 3. Sign in with their Microsoft account and accept the permissions
+4. Microsoft may ask for a verification code (SMS/authenticator) — this is normal and only required for this login session
 
 **Step 1d — Wait for login to complete:**
 ```bash
@@ -60,6 +61,8 @@ python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py status
 ```
 
 The browser shows a permissions consent screen for **Microsoft Graph Command Line Tools** (a Microsoft first-party app). Token is cached at `~/.openclaw/ms365_token_cache.json` and auto-refreshed. Login is typically valid for 90 days.
+
+> **After successful login, tell the user:** Token is cached locally and auto-refreshes for ~90 days. You do not need to log in again unless you see `NOT_LOGGED_IN`. Microsoft may require a verification code during login — this is normal and only happens once per login session.
 
 ### Step 2: Check Timezone (after every login)
 
