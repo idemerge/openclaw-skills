@@ -183,7 +183,7 @@ def cmd_login(args):
 
     # Step 2: Poll for token (3 min timeout — device code valid for 15 min,
     # but we cut short to avoid blocking the agent too long. User can retry.)
-    interval = flow.get("interval", 5)
+    interval = flow.get("interval", 10)
     poll_timeout = 180  # 3 minutes
     expires_at = time.time() + poll_timeout
     device_code = flow["device_code"]
