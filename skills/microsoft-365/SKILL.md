@@ -18,6 +18,8 @@ Unified access to Microsoft 365 services via Microsoft Graph API — Calendar, O
 
 Uses **Device Code Flow** with a public Client ID — no Azure app registration or client secret required.
 
+> **Note on paths**: Commands below use `~/.openclaw/skills/microsoft-365/scripts/ms_graph.py` as the default path. If the skill directory has a different name (e.g. `microsoft365`), replace accordingly. To find the actual path: `find ~/.openclaw/skills -name ms_graph.py -path "*/microsoft*"`
+
 ## Setup
 
 ### Step 1: Login
