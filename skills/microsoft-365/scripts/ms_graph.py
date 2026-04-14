@@ -350,7 +350,7 @@ def cmd_cal_list(args):
     end_iso = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() + args.days * 86400))
     path = (
         f"/calendarView?startDateTime={now_iso}Z&endDateTime={end_iso}Z"
-        f"&$orderby=start/dateTime&$top=50"
+        f"&$orderby=start/dateTime&$top={args.top}"
         f"&$select=id,subject,start,end,location,isOnlineMeeting"
     )
     result = api_request("GET", path, prefer=f'outlook.timezone="{DEFAULT_TIMEZONE}"')
@@ -371,7 +371,7 @@ def cmd_cal_list(args):
 
 
 def cmd_cal_get(args):
-    result = api_request("GET", f"/events/{args.event_id}")
+    result = api_request("GET", f"/events/{args.event_id}", prefer=f'outlook.timezone="{DEFAULT_TIMEZONE}"')
     print("[Event Details]")
     print_event(result)
 
@@ -447,7 +447,6 @@ def cmd_cal_share_add(args):
             "address": args.email,
             "name": args.name or args.email.split("@")[0],
         },
-        "isInsideOrganization": False,
         "role": args.role,
     }
     result   = api_request("POST", f"/calendars/{cal_id}/calendarPermissions", body)
@@ -542,7 +541,8 @@ def cmd_od_upload(args):
         sys.exit(1)
     file_size = os.path.getsize(local_path)
     if file_size > 4 * 1024 * 1024:
-        print(f"[ERROR] File too large ({file_size} bytes). Simple upload supports files up to 4MB.", file=sys.stderr)
+        size_mb = file_size / (1024 * 1024)
+        print(f"[ERROR] File too large ({size_mb:.1f}MB). Upload supports files up to 4MB. Large file upload is not yet supported.", file=sys.stderr)
         sys.exit(1)
     filename = os.path.basename(local_path)
     if remote_path.endswith("/"):
@@ -550,21 +550,32 @@ def cmd_od_upload(args):
     api_path = f"/drive/root:/{urllib.parse.quote(remote_path)}:/content"
     with open(local_path, "rb") as f:
         file_data = f.read()
-    token = get_access_token()
-    url   = GRAPH_API + api_path
-    req   = urllib.request.Request(url, data=file_data, method="PUT")
-    req.add_header("Authorization", f"Bearer {token}")
-    req.add_header("Content-Type", "application/octet-stream")
-    try:
+    url = GRAPH_API + api_path
+
+    def _do_upload(token: str) -> dict:
+        req = urllib.request.Request(url, data=file_data, method="PUT")
+        req.add_header("Authorization", f"Bearer {token}")
+        req.add_header("Content-Type", "application/octet-stream")
         with urllib.request.urlopen(req) as resp:
-            result = json.loads(resp.read())
-        print(f"[OK] File uploaded: {result.get('name', filename)}")
-        print(f"  ID      : {result.get('id', '')}")
-        print(f"  Web URL : {result.get('webUrl', 'N/A')}")
+            return json.loads(resp.read())
+
+    try:
+        result = _do_upload(get_access_token())
     except urllib.error.HTTPError as e:
-        body_err = e.read().decode()
-        print(f"[ERROR] Upload failed: {e.code}\n{body_err}", file=sys.stderr)
-        sys.exit(1)
+        if e.code == 401:
+            try:
+                result = _do_upload(get_access_token(force_refresh=True))
+            except urllib.error.HTTPError as e2:
+                body_err = e2.read().decode()
+                print(f"[ERROR] Upload failed: {e2.code}\n{body_err}", file=sys.stderr)
+                sys.exit(1)
+        else:
+            body_err = e.read().decode()
+            print(f"[ERROR] Upload failed: {e.code}\n{body_err}", file=sys.stderr)
+            sys.exit(1)
+    print(f"[OK] File uploaded: {result.get('name', filename)}")
+    print(f"  ID      : {result.get('id', '')}")
+    print(f"  Web URL : {result.get('webUrl', 'N/A')}")
 
 
 def cmd_od_mkdir(args):
@@ -734,6 +745,7 @@ def main():
 
     p_l = cal_sub.add_parser("list")
     p_l.add_argument("--days", type=int, default=7)
+    p_l.add_argument("--top",  type=int, default=50)
 
     p_g = cal_sub.add_parser("get")
     p_g.add_argument("--event-id", required=True)

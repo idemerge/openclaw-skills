@@ -1,6 +1,6 @@
 ---
 name: microsoft-365
-description: Manage Microsoft 365 via Microsoft Graph API — no Azure registration required. Activate when the user asks about Outlook calendar events, Teams meetings, OneDrive files, or Outlook email. Also activate when the user wants to create a Teams meeting or schedule something on Teams calendar. Also activate when the user wants to connect or log in to Microsoft 365, or change the timezone. Supports calendar CRUD + sharing with Teams online meetings, OneDrive file operations, and Outlook mail. See references/config.md for login and credential management.
+description: Manage Microsoft 365 via Microsoft Graph API — no Azure registration required. Activate when the user asks about Outlook calendar events, Teams meetings, OneDrive files, Outlook email, or wants to connect/log in to Microsoft 365 or change the timezone. Supports calendar CRUD + sharing with Teams online meetings, OneDrive file operations, and Outlook mail. See references/config.md for login and credential management.
 homepage: https://github.com/idemerge/openclaw-skills
 metadata:
   clawdbot:
@@ -71,7 +71,6 @@ See `references/config.md` → **Timezone Setup** for the full procedure.
 ### Step 3: Verify
 
 ```bash
-python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py status
 python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar list
 ```
 

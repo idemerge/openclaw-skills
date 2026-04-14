@@ -93,7 +93,7 @@ cat ~/.openclaw/workspace/.credentials/ms-graph-config.json 2>/dev/null
 
 - **Config missing** → ask the user to choose a timezone. Do NOT set one silently.
 - **Config exists** → show the current value and ask to confirm:
-  > "Your timezone is currently `Asia/Shanghai`. Keep it or change?"
+  > "Your timezone is currently `Asia/Dubai`. Keep it or change?"
 
 Available timezones to suggest:
 
@@ -131,12 +131,22 @@ Displays current timezone setting and login status.
 
 ---
 
-## Delete All Credentials
+## Delete Token Cache
+
+```bash
+rm -f ~/.openclaw/ms365_token_cache.json
+```
+
+This removes the login token only. Timezone config is preserved so the user does not need to re-select it on next login.
+
+## Delete All Data (token + timezone)
 
 ```bash
 rm -f ~/.openclaw/ms365_token_cache.json
 rm -f ~/.openclaw/workspace/.credentials/ms-graph-config.json
 ```
+
+Use this only when the user wants a complete reset.
 
 ---
 
