@@ -114,8 +114,14 @@ def _pip_install_msal():
     try:
         subprocess.check_call(cmd)
     except subprocess.CalledProcessError:
-        # Retry with --break-system-packages for externally-managed environments
-        subprocess.check_call(cmd + ["--break-system-packages"])
+        try:
+            subprocess.check_call(cmd + ["--break-system-packages"])
+        except subprocess.CalledProcessError:
+            print("\n[ERROR] Cannot install msal: neither python3-venv nor pip is available.", file=sys.stderr)
+            print("Please install one of the following and try again:", file=sys.stderr)
+            print("  Option 1 (recommended): sudo apt install python3-venv", file=sys.stderr)
+            print("  Option 2: sudo apt install python3-pip", file=sys.stderr)
+            sys.exit(1)
     import importlib
     importlib.invalidate_caches()
 
