@@ -1,5 +1,5 @@
 ---
-name: microsoft-v2
+name: microsoft-365
 description: Manage Microsoft 365 via Microsoft Graph API — no Azure registration required. Activate when the user asks about Outlook calendar events, Teams meetings, OneDrive files, or Outlook email. Also activate when the user wants to create a Teams meeting or schedule something on Teams calendar. Also activate when the user wants to connect or log in to Microsoft 365, or change the timezone. Supports calendar CRUD + sharing with Teams online meetings, OneDrive file operations, and Outlook mail. See references/config.md for login and credential management.
 homepage: https://github.com/idemerge/openclaw-skills
 metadata:
@@ -27,7 +27,7 @@ Follow these steps exactly so the user sees the device code in chat:
 
 **Step 1a — Start login in background:**
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py login &
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py login &
 ```
 
 **Step 1b — Wait for device code file (retry up to 10s):**
@@ -56,7 +56,7 @@ wait
 
 **Step 1e — Verify:**
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py status
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py status
 ```
 
 The browser shows a permissions consent screen for **Microsoft Graph Command Line Tools** (a Microsoft first-party app). Token is cached at `~/.openclaw/ms365_token_cache.json` and auto-refreshed. Login is typically valid for 90 days.
@@ -94,8 +94,8 @@ EOF
 ### Step 3: Verify
 
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py status
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar list
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py status
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar list
 ```
 
 ### Update / Delete / Logout
@@ -134,7 +134,7 @@ See `references/config.md`.
 
 ### Create event
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar create \
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar create \
   --subject "Title" --start "2026-03-30T10:00:00" --end "2026-03-30T11:00:00" \
   [--timezone "Asia/Dubai"] [--body "Description"] [--location "Location"] \
   [--attendees a@x.com b@x.com] [--online]
@@ -142,37 +142,37 @@ python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar create \
 
 ### List events
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar list [--days 7]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar list [--days 7]
 ```
 
 ### Get event details
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar get --event-id <id>
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar get --event-id <id>
 ```
 
 ### Update event
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar update \
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar update \
   --event-id <id> [--subject ...] [--start ...] [--end ...] [--body ...] \
   [--location ...] [--attendees ...] [--online]
 ```
 
 ### Delete event
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar delete --event-id <id>
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar delete --event-id <id>
 ```
 
 ### List calendars
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar calendars
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar calendars
 ```
 
 ### Calendar sharing
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar share-list [--calendar-id <id>]
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar share-add --email <email> [--role read] [--calendar-id <id>]
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar share-update --permission-id <id> --role <role> [--calendar-id <id>]
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar share-remove --permission-id <id> [--calendar-id <id>]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-list [--calendar-id <id>]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-add --email <email> [--role read] [--calendar-id <id>]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-update --permission-id <id> --role <role> [--calendar-id <id>]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py calendar share-remove --permission-id <id> [--calendar-id <id>]
 ```
 
 ---
@@ -181,37 +181,37 @@ python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py calendar share-remov
 
 ### List files
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py onedrive list [--path "/"] [--top 20]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive list [--path "/"] [--top 20]
 ```
 
 ### Get file/folder info
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py onedrive info --item-id <id>
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive info --item-id <id>
 ```
 
 ### Download file
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py onedrive download --item-id <id> [--output /path/to/save]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive download --item-id <id> [--output /path/to/save]
 ```
 
 ### Upload file
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py onedrive upload --local-file /path/to/file --remote-path "/folder/filename.ext"
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive upload --local-file /path/to/file --remote-path "/folder/filename.ext"
 ```
 
 ### Create folder
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py onedrive mkdir --name "New Folder" [--parent-id <id>]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive mkdir --name "New Folder" [--parent-id <id>]
 ```
 
 ### Delete file/folder
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py onedrive delete --item-id <id>
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive delete --item-id <id>
 ```
 
 ### Search files
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py onedrive search --query "keyword"
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py onedrive search --query "keyword"
 ```
 
 ---
@@ -220,35 +220,35 @@ python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py onedrive search --qu
 
 ### List emails
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py mail list [--top 10] [--folder inbox]
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail list [--top 10] [--folder inbox]
 ```
 
 ### Get email details
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py mail get --message-id <id>
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail get --message-id <id>
 ```
 
 ### Send email
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py mail send \
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail send \
   --to "recipient@example.com" --subject "Subject" --body "Message body" \
   [--cc a@x.com] [--bcc b@x.com]
 ```
 
 ### Reply to email
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py mail reply \
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail reply \
   --message-id <id> --body "Reply text"
 ```
 
 ### Delete email
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py mail delete --message-id <id>
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail delete --message-id <id>
 ```
 
 ### List mail folders
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py mail folders
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py mail folders
 ```
 
 ---
@@ -257,12 +257,12 @@ python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py mail folders
 
 ### Check login status
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py status
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py status
 ```
 
 ### Show current config
 ```bash
-python3 ~/.openclaw/skills/microsoft-v2/scripts/ms_graph.py show-config
+python3 ~/.openclaw/skills/microsoft-365/scripts/ms_graph.py show-config
 ```
 
 ---
