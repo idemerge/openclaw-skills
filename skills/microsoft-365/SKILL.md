@@ -55,9 +55,8 @@ Tell the user:
 wait
 ```
 
-If the user does not respond or complete login within a few minutes, do not keep waiting silently.
-Remind the user that the device code expires in 15 minutes and they need to complete the browser login.
-If login times out, tell the user to try again when ready.
+The script prints warnings at 5 minutes and 2 minutes before the device code expires (15 min total).
+If login times out, tell the user the code has expired and offer to try again.
 
 **Step 1e — Verify:**
 ```bash

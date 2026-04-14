@@ -185,9 +185,18 @@ def cmd_login(args):
     interval = flow.get("interval", 5)
     expires_at = time.time() + flow.get("expires_in", 900)
     device_code = flow["device_code"]
+    warned_5min = False
+    warned_2min = False
 
     while time.time() < expires_at:
         time.sleep(interval)
+        remaining = expires_at - time.time()
+        if remaining < 300 and not warned_5min:
+            print("[WARN] Device code expires in 5 minutes. Please complete browser login soon.", file=sys.stderr)
+            warned_5min = True
+        elif remaining < 120 and not warned_2min:
+            print("[WARN] Device code expires in 2 minutes!", file=sys.stderr)
+            warned_2min = True
         result = _oauth_post(TOKEN_ENDPOINT, {
             "client_id": CLIENT_ID,
             "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
