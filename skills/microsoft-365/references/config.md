@@ -52,6 +52,7 @@ Steps for the user:
 3. Sign in with their Microsoft account (personal Outlook.com or enterprise Microsoft 365)
 4. Accept the permissions on the consent screen
 5. Microsoft may ask for a verification code (SMS/email/authenticator) — this is normal and only required for this login session
+6. After approval, the browser may show a "localhost" error page — this is normal and can be safely closed. The login has already succeeded.
 
 On success, `status` returns:
 ```

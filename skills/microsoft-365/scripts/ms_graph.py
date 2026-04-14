@@ -179,6 +179,8 @@ def cmd_login(args):
     print("  Note: Microsoft may ask for a verification code")
     print("  (SMS/email/authenticator). This is normal and")
     print("  only required for this login session.")
+    print("  After approval, the browser may show a localhost")
+    print("  error page — this is expected. Just close it.")
     print("  Waiting for login...\n")
 
     # Step 2: Poll for token (3 min timeout — device code valid for 15 min,

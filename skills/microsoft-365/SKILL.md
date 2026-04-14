@@ -49,6 +49,7 @@ Tell the user:
 2. Enter the code `user_code`
 3. Sign in with their Microsoft account and accept the permissions
 4. Microsoft may ask for a verification code (SMS/email/authenticator) — this is normal and only required for this login session
+5. After approval, the browser may show a "localhost" error page — this is normal and can be safely closed. The login has already succeeded.
 
 **Step 1d — Wait for login to complete:**
 ```bash
