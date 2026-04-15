@@ -84,6 +84,7 @@ SCOPES = [
 ]
 
 TOKEN_CACHE_PATH  = Path.home() / ".openclaw" / "ms365_token_cache.json"
+DEVICE_CODE_PATH  = Path.home() / ".openclaw" / "ms365_device_code.json"
 CONFIG_FILE      = os.path.expanduser("~/.openclaw/workspace/.credentials/ms-graph-config.json")
 
 
@@ -173,10 +174,15 @@ def cmd_device_code(args):
     if "user_code" not in flow:
         print(f"[ERROR] Could not start device flow: {flow.get('error_description', flow.get('error'))}", file=sys.stderr)
         sys.exit(1)
+    # Save device_code to file so login-poll can read it without CLI arg corruption
+    DEVICE_CODE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    DEVICE_CODE_PATH.write_text(json.dumps({
+        "device_code": flow["device_code"],
+        "expires_at": int(time.time()) + flow.get("expires_in", 900),
+    }))
     print(json.dumps({
         "verification_uri": flow["verification_uri"],
         "user_code": flow["user_code"],
-        "device_code": flow["device_code"],
         "expires_in": flow.get("expires_in", 900),
         "interval": flow.get("interval", 10),
     }))
@@ -184,6 +190,23 @@ def cmd_device_code(args):
 
 def cmd_login_poll(args):
     """Poll for token after user confirms browser login is done. Blocks up to 120 seconds."""
+    # Read device_code from file saved by cmd_device_code
+    device_code = None
+    if DEVICE_CODE_PATH.exists():
+        try:
+            saved = json.loads(DEVICE_CODE_PATH.read_text())
+            if saved.get("expires_at", 0) > time.time():
+                device_code = saved["device_code"]
+            else:
+                print("[ERROR] Device code expired. Run device-code again.", file=sys.stderr)
+                sys.exit(1)
+        except Exception:
+            print("[ERROR] Failed to read device code file. Run device-code again.", file=sys.stderr)
+            sys.exit(1)
+    if not device_code:
+        print("[ERROR] No device code found. Run device-code first.", file=sys.stderr)
+        sys.exit(1)
+
     interval = args.interval or 5
     poll_timeout = 120  # 2 minutes — user already confirmed, but allow for agent delays
     expires_at = time.time() + poll_timeout
@@ -193,7 +216,7 @@ def cmd_login_poll(args):
         result = _oauth_post(TOKEN_ENDPOINT, {
             "client_id": CLIENT_ID,
             "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
-            "device_code": args.device_code,
+            "device_code": device_code,
         })
         error = result.get("error")
         if error == "authorization_pending":
@@ -202,7 +225,23 @@ def cmd_login_poll(args):
             interval += 5
             continue
         if error:
-            print(f"LOGIN_FAILED: {result.get('error_description', error)}")
+            desc = result.get("error_description", error)
+            # Device code flow specific errors (per Microsoft docs)
+            hints = {
+                "authorization_declined": "You denied the authorization request. Run device-code again if you want to retry.",
+                "bad_verification_code": "The device_code was not recognized. Run device-code again.",
+                "expired_token": "The device code expired (15 min limit). Run device-code again to get a new one.",
+            }
+            # General OAuth errors that may also occur
+            general_hints = {
+                "interaction_required": "Re-login required — possibly MFA or conditional access. Run device-code again and complete all verification steps in the browser.",
+                "consent_required": "User consent was not granted. Run device-code again and accept the permissions in the browser.",
+                "admin_consent_required": "Your organization requires admin approval. Ask your IT admin to grant consent, or use a personal Microsoft account.",
+            }
+            hint = hints.get(error) or general_hints.get(error, "")
+            if hint:
+                hint = f"\nHint: {hint}"
+            print(f"LOGIN_FAILED: {desc}{hint}")
             sys.exit(1)
         # Success — save token cache
         cache = {
@@ -219,11 +258,12 @@ def cmd_login_poll(args):
         except Exception:
             cache["account"] = {"name": "", "username": ""}
         _save_cache(cache)
+        DEVICE_CODE_PATH.unlink(missing_ok=True)  # clean up
         name = cache["account"].get("name", "")
         email = cache["account"].get("username", "")
         print(f"LOGIN_SUCCESS | {name} | {email}")
         return
-    print("LOGIN_TIMEOUT")
+    print("LOGIN_TIMEOUT: Device code expired or login not completed. Run device-code again to get a new code.")
     sys.exit(1)
 
 
@@ -851,8 +891,7 @@ def main():
     sub.add_parser("login",       help="Interactive login (terminal use)")
     sub.add_parser("device-code", help="Get device code for login (outputs JSON)")
     p_lp = sub.add_parser("login-poll", help="Poll for login completion after browser auth")
-    p_lp.add_argument("--device-code", required=True)
-    p_lp.add_argument("--interval", type=int, default=10)
+    p_lp.add_argument("--interval", type=int, default=5)
     sub.add_parser("logout",      help="Clear token cache")
     sub.add_parser("status",      help="Check login status")
     sub.add_parser("show-config", help="Show timezone and login status")

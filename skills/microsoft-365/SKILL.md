@@ -69,7 +69,7 @@ Tell the user:
 
 **Step 1c — When the user confirms login is done:**
 ```bash
-python3 {baseDir}/scripts/ms_graph.py login-poll --device-code <device_code from step 1a>
+python3 {baseDir}/scripts/ms_graph.py login-poll
 ```
 - `LOGIN_SUCCESS | name | email` → login succeeded, proceed to timezone check
 - `LOGIN_TIMEOUT` → device code expired, offer to start over from step 1a

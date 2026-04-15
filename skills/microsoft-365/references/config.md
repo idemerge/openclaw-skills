@@ -56,7 +56,7 @@ Steps for the user:
 
 **3. When user confirms login is done:**
 ```bash
-python3 {baseDir}/scripts/ms_graph.py login-poll --device-code <device_code>
+python3 {baseDir}/scripts/ms_graph.py login-poll
 ```
 Output:
 - `LOGIN_SUCCESS | Name | email@example.com` — proceed to timezone check
