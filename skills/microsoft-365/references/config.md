@@ -9,7 +9,18 @@ This skill uses **Device Code Flow** — no Azure app registration or client sec
 | Item | Location |
 |------|----------|
 | Token cache | `~/.openclaw/ms365_token_cache.json` |
-| Timezone config | `~/.openclaw/workspace/.credentials/ms-graph-config.json` |
+| Config | `~/.openclaw/workspace/.credentials/ms-graph-config.json` |
+
+### Account type & tenant
+
+The tenant endpoint depends on the Microsoft account type:
+
+| Account type | `tenant_id` value | Verification URL |
+|--------------|-------------------|------------------|
+| Personal (Outlook.com / Hotmail) | `consumers` (default) | `https://www.microsoft.com/link` |
+| Enterprise (Microsoft 365 / work) | `organizations` | `https://login.microsoft.com/device` |
+
+On first login, ask the user which account type they use. The `tenant_id` is stored in the config file alongside `timezone`. If not set, defaults to `consumers` (personal accounts).
 
 ---
 
@@ -105,10 +116,13 @@ Once the user confirms, write the config file:
 mkdir -p ~/.openclaw/workspace/.credentials
 cat > ~/.openclaw/workspace/.credentials/ms-graph-config.json << 'EOF'
 {
-  "timezone": "<user_confirmed_timezone>"
+  "timezone": "<user_confirmed_timezone>",
+  "tenant_id": "<consumers_or_organizations>"
 }
 EOF
 ```
+
+> **Important**: `tenant_id` must be set correctly before running `device-code` or `login`. If the user later changes their account type, update this field and re-login.
 
 ---
 
@@ -151,6 +165,7 @@ Use this only when the user wants a complete reset.
 | 403 Forbidden on API calls | The Microsoft account may lack a license for that service (e.g. no Exchange/OneDrive plan) |
 | `interaction_required` error | Conditional Access policy (MFA) requires re-login. Run `ms_graph.py login` |
 | Consent screen blocked by admin | Enterprise tenant admin has disabled user consent. Ask IT admin to grant consent for the app |
+| Browser shows `response_type` error on localhost after sign-in | Wrong `tenant_id` in config. Personal accounts must use `consumers`, enterprise must use `organizations`. Update `ms-graph-config.json` and re-login. |
 
 ### Enterprise tenant: admin consent required
 

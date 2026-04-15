@@ -55,7 +55,23 @@ from pathlib import Path
 
 # Microsoft Graph Command Line Tools (public client, no secret required)
 CLIENT_ID  = "14d82eec-204b-4c2f-b7e8-296a70dab67e"
-TENANT_ID  = "common"
+
+def _tenant_id():
+    """Return tenant ID: 'consumers' for personal accounts, 'organizations' for enterprise.
+    Reads from config file; defaults to 'consumers' for personal Outlook.com accounts."""
+    cfg_path = os.path.expanduser("~/.openclaw/workspace/.credentials/ms-graph-config.json")
+    if os.path.exists(cfg_path):
+        try:
+            with open(cfg_path) as f:
+                cfg = json.load(f)
+            tid = cfg.get("tenant_id", "").strip()
+            if tid in ("consumers", "organizations", "common"):
+                return tid
+        except Exception:
+            pass
+    return "consumers"
+
+TENANT_ID  = _tenant_id()
 AUTHORITY  = f"https://login.microsoftonline.com/{TENANT_ID}"
 GRAPH_API  = "https://graph.microsoft.com/v1.0/me"
 
@@ -809,9 +825,12 @@ def cmd_show_config(args):
         with open(CONFIG_FILE) as f:
             cfg = json.load(f)
         tz = cfg.get("timezone", "(not set)")
+        tid = cfg.get("tenant_id", "consumers (default)")
     else:
         tz = "Asia/Dubai (default — config file not found)"
+        tid = "consumers (default)"
     print(f"Timezone   : {tz}")
+    print(f"Tenant     : {tid}")
     print(f"Config     : {CONFIG_FILE}")
     print(f"Token cache: {TOKEN_CACHE_PATH}")
     cache = _load_cache()

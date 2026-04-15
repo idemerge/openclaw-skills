@@ -18,6 +18,8 @@ Unified access to Microsoft 365 services via Microsoft Graph API — Calendar, O
 
 Uses **Device Code Flow** with a public Client ID — no Azure app registration or client secret required.
 
+> **Account type matters**: Personal accounts (Outlook.com/Hotmail) use `tenant_id=consumers`, enterprise accounts use `tenant_id=organizations`. This is stored in `ms-graph-config.json`. Default is `consumers`. See `references/config.md` for details.
+
 > **Script path**: Commands below use `{baseDir}/scripts/ms_graph.py` where `{baseDir}` is resolved to the skill's installation directory at runtime.
 
 ## Setup
@@ -176,8 +178,8 @@ See `references/config.md`.
 
 | Endpoint | Method | Data Sent | Purpose |
 |----------|--------|-----------|---------|
-| `https://login.microsoftonline.com/common/oauth2/v2.0/devicecode` | POST | client_id, scope | Obtain device code |
-| `https://login.microsoftonline.com/common/oauth2/v2.0/token` | POST | client_id, device_code, grant_type | Poll for access token |
+| `https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/devicecode` | POST | client_id, scope | Obtain device code |
+| `https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token` | POST | client_id, device_code, grant_type | Poll for access token |
 | `https://graph.microsoft.com/v1.0/me/...` | GET/POST/PATCH/DELETE | access_token, event/mail/file data | Calendar, OneDrive, Mail operations |
 
 ## Security & Privacy
