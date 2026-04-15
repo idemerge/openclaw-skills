@@ -183,9 +183,9 @@ def cmd_device_code(args):
 
 
 def cmd_login_poll(args):
-    """Poll for token after user confirms browser login is done. Blocks up to 60 seconds."""
+    """Poll for token after user confirms browser login is done. Blocks up to 120 seconds."""
     interval = args.interval or 5
-    poll_timeout = 60  # 1 minute — user already confirmed login
+    poll_timeout = 120  # 2 minutes — user already confirmed, but allow for agent delays
     expires_at = time.time() + poll_timeout
 
     while time.time() < expires_at:
