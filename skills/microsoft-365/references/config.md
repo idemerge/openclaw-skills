@@ -20,7 +20,13 @@ The tenant endpoint depends on the Microsoft account type (per [Microsoft docs](
 | Personal (Outlook.com / Hotmail) | `consumers` (default) |
 | Enterprise (Microsoft 365 / work) | `organizations` |
 
-On first login, ask the user which account type they use. The `tenant_id` is stored in the config file alongside `timezone`. If not set, defaults to `consumers` (personal accounts).
+**You MUST ask the user which account type they use before starting the login flow.** Do not default silently — using the wrong tenant causes `response_type` errors on the localhost redirect. Ask explicitly:
+
+> "Which Microsoft account type are you using?
+> 1. Personal account (Outlook.com / Hotmail / live.com) → tenant_id = consumers
+> 2. Work or school account (organization-assigned) → tenant_id = organizations"
+
+The `tenant_id` must be written to the config file **before** running `device-code`, because the script reads it at startup. If the config file does not exist yet, create it with the user's answer and a default timezone. If it already exists, preserve the timezone and update only `tenant_id`.
 
 > **Why not `common`?** The `/common` tenant is documented to support both account types, but in practice personal accounts may encounter a `response_type` error when redirected to `localhost` after sign-in. Using `/consumers` for personal accounts avoids this issue.
 

@@ -24,6 +24,30 @@ Uses **Device Code Flow** with a public Client ID — no Azure app registration 
 
 ## Setup
 
+### Step 0: Determine Account Type (REQUIRED before login)
+
+**You MUST ask the user which Microsoft account type they use before running `device-code`.** Do not skip this step or default silently.
+
+Ask:
+> "Which Microsoft account type are you using?
+> 1. Personal account (Outlook.com / Hotmail / live.com) → tenant_id = consumers
+> 2. Work or school account (organization-assigned) → tenant_id = organizations"
+
+Then write the config file (or update it) **before** proceeding to login:
+
+```bash
+mkdir -p ~/.openclaw/workspace/.credentials
+# If config file already exists, read it first and only update tenant_id
+cat > ~/.openclaw/workspace/.credentials/ms-graph-config.json << 'EOF'
+{
+  "timezone": "<existing_or_default_timezone>",
+  "tenant_id": "<consumers_or_organizations>"
+}
+EOF
+```
+
+> **Why this matters**: Using the wrong tenant_id causes `response_type` errors on the localhost redirect after sign-in. The `device-code` command reads tenant_id from this config file at startup — if it's wrong, the entire login flow fails.
+
 ### Step 1: Login
 
 **Step 1a — Get device code:**
