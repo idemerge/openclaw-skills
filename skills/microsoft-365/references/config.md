@@ -13,14 +13,16 @@ This skill uses **Device Code Flow** — no Azure app registration or client sec
 
 ### Account type & tenant
 
-The tenant endpoint depends on the Microsoft account type:
+The tenant endpoint depends on the Microsoft account type (per [Microsoft docs](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-device-code)):
 
-| Account type | `tenant_id` value | Verification URL |
-|--------------|-------------------|------------------|
-| Personal (Outlook.com / Hotmail) | `consumers` (default) | `https://www.microsoft.com/link` |
-| Enterprise (Microsoft 365 / work) | `organizations` | `https://login.microsoft.com/device` |
+| Account type | `tenant_id` value |
+|--------------|-------------------|
+| Personal (Outlook.com / Hotmail) | `consumers` (default) |
+| Enterprise (Microsoft 365 / work) | `organizations` |
 
 On first login, ask the user which account type they use. The `tenant_id` is stored in the config file alongside `timezone`. If not set, defaults to `consumers` (personal accounts).
+
+> **Why not `common`?** The `/common` tenant is documented to support both account types, but in practice personal accounts may encounter a `response_type` error when redirected to `localhost` after sign-in. Using `/consumers` for personal accounts avoids this issue.
 
 ---
 
